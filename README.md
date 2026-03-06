@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎨 Sapienstudio
 
-## Getting Started
+[🔗 Enter Sapienstudio.art](https://sapienstudio.art)
 
-First, run the development server:
+A dynamic creativity platform bridging the gap between high-quality 2D illustration and interactive web experiences, allowing users to create, customize, and share unique characters.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### 📖 Concept & Vision
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Sapien Studio is built for creators, designers, and storytellers. At its core is a highly modular Avatar Generator that dynamically composites overlapping SVG layers into cohesive, beautifully illustrated characters.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Whether you are building a profile picture, designing a protagonist for a story, or just experimenting with visual assets, Sapien Studio provides a seamless, lightning-fast interface to bring characters to life and share them with the world.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠 Tech Stack & Architecture
 
-## Learn More
+### Frontend
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework:** Next.js
+- **Language:** TypeScript
+- **UI/Components:** React, optimized with strict memoization for overlapping graphical layers.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Backend & Infrastructure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **APIs & Database:** Hono | Convex | Better Auth
+- **Asset Storage:** AWS S3
+- **CDN & Edge Delivery:** AWS CloudFront | AWS CloudFront Function
 
-## Deploy on Vercel
+## 🤝 Contributing (Future plan)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+We welcome contributions from both developers and 2D artists! Whether you want to optimize the rendering pipeline or submit a new pack of SVG accessories, please check out our CONTRIBUTING.md guide.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📄 License
+
+XXX License - Copyright (c) 2026 Sapien Studio
