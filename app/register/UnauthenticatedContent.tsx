@@ -1,0 +1,343 @@
+'use client'
+
+import React, { memo, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { InputIcon } from '@/components/input-icon'
+import { Alert, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { authClient } from '@/lib/auth-client'
+import { cn } from '@/lib/utils'
+import {
+  ArrowRight02Icon,
+  Mail02Icon,
+  UserIcon,
+  ViewOffIcon,
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { AnimatePresence, motion } from 'motion/react'
+import { BUTTON_ARROW_ANIMATE, BUTTON_ARROW_TRANSITION } from '@/constants'
+
+const DEV_DEFAULTS = { email: 's@s.com', password: 'password' }
+
+const FORM_ANIMATE_DISTANCE = 10
+const FORM_ANIMATE_TRANSITION = { duration: 0.3, ease: 'easeOut' as const }
+
+const formLoginVariants = {
+  enter: () => ({
+    opacity: 0,
+    x: -FORM_ANIMATE_DISTANCE,
+    filter: 'blur(1px)',
+    transition: FORM_ANIMATE_TRANSITION,
+  }),
+  center: {
+    opacity: 1,
+    x: 0,
+    filter: 'blur(0px)',
+    transition: FORM_ANIMATE_TRANSITION,
+  },
+  exit: () => ({
+    opacity: 0,
+    x: -FORM_ANIMATE_DISTANCE,
+    filter: 'blur(1px)',
+    transition: FORM_ANIMATE_TRANSITION,
+  }),
+}
+
+const formSignupVariants = {
+  enter: () => ({
+    opacity: 0,
+    x: FORM_ANIMATE_DISTANCE,
+    filter: 'blur(1px)',
+    transition: FORM_ANIMATE_TRANSITION,
+  }),
+  center: {
+    opacity: 1,
+    x: 0,
+    filter: 'blur(0px)',
+    transition: FORM_ANIMATE_TRANSITION,
+  },
+  exit: () => ({
+    opacity: 0,
+    x: FORM_ANIMATE_DISTANCE,
+    filter: 'blur(1px)',
+    transition: FORM_ANIMATE_TRANSITION,
+  }),
+}
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0 },
+}
+
+const SPRING_TRANSITION = {
+  type: 'spring' as const,
+  stiffness: 400,
+  damping: 25,
+}
+
+// --- Memoized subcomponents ---
+
+const SubmitButton = memo(function SubmitButton({
+  isLoading,
+  label,
+  loadingLabel,
+}: {
+  isLoading: boolean
+  label: string
+  loadingLabel: string
+}) {
+  return (
+    <Button size="none" variant="defaultPrimary" disabled={isLoading}>
+      <span>{isLoading ? loadingLabel : label}</span>
+      <motion.span
+        animate={BUTTON_ARROW_ANIMATE}
+        transition={BUTTON_ARROW_TRANSITION}
+      >
+        <HugeiconsIcon
+          icon={ArrowRight02Icon}
+          className="size-4"
+          strokeWidth={2}
+        />
+      </motion.span>
+    </Button>
+  )
+})
+
+const TabSwitcher = memo(function TabSwitcher({
+  isLogin,
+  onSwitchToLogin,
+  onSwitchToSignup,
+}: {
+  isLogin: boolean
+  onSwitchToLogin: () => void
+  onSwitchToSignup: () => void
+}) {
+  return (
+    <motion.div className="w-[60%] flex justify-between">
+      <Button
+        type="button"
+        size="none"
+        variant="ghost"
+        className={cn(
+          'text-base cursor-pointer',
+          isLogin ? 'opacity-100 font-semibold' : 'opacity-50',
+        )}
+        onClick={onSwitchToLogin}
+      >
+        Login
+      </Button>
+      <Button
+        type="button"
+        size="none"
+        variant="ghost"
+        className={cn(
+          'text-base cursor-pointer',
+          !isLogin ? 'opacity-100 font-semibold' : 'opacity-50',
+        )}
+        onClick={onSwitchToSignup}
+      >
+        Sign Up
+      </Button>
+    </motion.div>
+  )
+})
+
+const LoginForm = memo(function LoginForm() {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [authError, setAuthError] = useState<string | undefined>(undefined)
+
+  const handleSubmit = useCallback(
+    async (e: React.SubmitEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      const fd = new FormData(e.currentTarget)
+      const email = (fd.get('email') as string) ?? ''
+      const password = (fd.get('password') as string) ?? ''
+
+      if (!email || !password) {
+        setAuthError('All fields are required')
+        return
+      }
+
+      setAuthError(undefined)
+      setIsLoading(true)
+      try {
+        const { data, error } = await authClient.signIn.email({
+          email,
+          password,
+        })
+        if (error) {
+          setAuthError(error.message)
+          console.error('Sign in error:', error)
+        }
+        if (data) router.push('/sapiens')
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [router],
+  )
+
+  return (
+    <motion.form
+      key="login"
+      variants={formLoginVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      className="relative w-full h-50 flex flex-col items-start"
+      onSubmit={handleSubmit}
+    >
+      <motion.div
+        variants={staggerItem}
+        className="relative w-full flex flex-col items-start gap-2"
+        transition={SPRING_TRANSITION}
+      >
+        <InputIcon
+          icon={Mail02Icon}
+          type="email"
+          name="email"
+          autoComplete="off"
+          placeholder="Enter your email address..."
+          className="register-input-field"
+          defaultValue={DEV_DEFAULTS.email}
+        />
+        <InputIcon
+          icon={ViewOffIcon}
+          type="password"
+          name="password"
+          autoComplete="off"
+          placeholder="Enter your password"
+          className="register-input-field"
+          defaultValue={DEV_DEFAULTS.password}
+        />
+        <SubmitButton
+          isLoading={isLoading}
+          label="Let's Roll"
+          loadingLabel="Signing in..."
+        />
+        {authError && (
+          <Alert variant="ghost" className="text-xs">
+            <AlertTitle>{authError}</AlertTitle>
+          </Alert>
+        )}
+      </motion.div>
+    </motion.form>
+  )
+})
+
+const SignupForm = memo(function SignupForm() {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [authError, setAuthError] = useState<string | undefined>(undefined)
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      const fd = new FormData(e.currentTarget)
+      const name = (fd.get('name') as string) ?? ''
+      const email = (fd.get('email') as string) ?? ''
+      const password = (fd.get('password') as string) ?? ''
+
+      if (!name || !email || !password) {
+        setAuthError('All fields are required')
+        return
+      }
+
+      setAuthError(undefined)
+      setIsLoading(true)
+      try {
+        const { data, error } = await authClient.signUp.email({
+          email,
+          password,
+          name,
+        })
+        if (error) {
+          setAuthError(error.message)
+          console.error('Sign up error:', error)
+        }
+        if (data) router.push('/sapiens')
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [router],
+  )
+
+  return (
+    <motion.form
+      key="signup"
+      variants={formSignupVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      className="relative w-full h-50 flex flex-col items-start gap-2"
+      onSubmit={handleSubmit}
+    >
+      <motion.div
+        variants={staggerItem}
+        className="relative w-full flex flex-col items-start gap-2"
+        transition={SPRING_TRANSITION}
+      >
+        <InputIcon
+          icon={UserIcon}
+          type="text"
+          name="name"
+          autoComplete="off"
+          placeholder="Your name"
+          className="register-input-field"
+        />
+        <InputIcon
+          icon={Mail02Icon}
+          type="email"
+          name="email"
+          autoComplete="off"
+          placeholder="Enter your email address..."
+          className="register-input-field"
+          defaultValue={DEV_DEFAULTS.email}
+        />
+        <InputIcon
+          icon={ViewOffIcon}
+          type="password"
+          name="password"
+          autoComplete="off"
+          placeholder="Enter your password"
+          className="register-input-field"
+          defaultValue={DEV_DEFAULTS.password}
+        />
+        <SubmitButton
+          isLoading={isLoading}
+          label="Sign me up"
+          loadingLabel="Signing up..."
+        />
+        {authError && (
+          <Alert variant="ghost" className="text-xs">
+            <AlertTitle>{authError}</AlertTitle>
+          </Alert>
+        )}
+      </motion.div>
+    </motion.form>
+  )
+})
+
+// --- Main component (owns only `isLogin`) ---
+
+export default function UnauthenticatedContent() {
+  const [isLogin, setIsLogin] = useState(true)
+
+  const switchToLogin = useCallback(() => setIsLogin(true), []) // Keep the consistent pattern just in case
+  const switchToSignup = useCallback(() => setIsLogin(false), [])
+
+  return (
+    <motion.div className="relative w-full px-4 flex-col-center gap-3">
+      <TabSwitcher
+        isLogin={isLogin}
+        onSwitchToLogin={switchToLogin}
+        onSwitchToSignup={switchToSignup}
+      />
+      <AnimatePresence mode="wait">
+        {isLogin ? <LoginForm /> : <SignupForm />}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
