@@ -87,9 +87,14 @@ const SubmitButton = memo(function SubmitButton({
   loadingLabel: string
 }) {
   return (
-    <Button size="none" variant="defaultPrimary" disabled={isLoading}>
+    <Button
+      size="none"
+      variant="defaultPrimary"
+      disabled={isLoading}
+      className="font-semibold"
+    >
       <span>{isLoading ? loadingLabel : label}</span>
-      <motion.span
+      {/* <motion.span
         animate={BUTTON_ARROW_ANIMATE}
         transition={BUTTON_ARROW_TRANSITION}
       >
@@ -98,7 +103,7 @@ const SubmitButton = memo(function SubmitButton({
           className="size-4"
           strokeWidth={2}
         />
-      </motion.span>
+      </motion.span> */}
     </Button>
   )
 })
@@ -113,26 +118,26 @@ const TabSwitcher = memo(function TabSwitcher({
   onSwitchToSignup: () => void
 }) {
   return (
-    <motion.div className="w-[60%] flex justify-between">
+    <motion.div className="flex w-[60%] justify-between">
       <Button
         type="button"
         size="none"
         variant="ghost"
         className={cn(
-          'text-base cursor-pointer',
-          isLogin ? 'opacity-100 font-semibold' : 'opacity-50',
+          'cursor-pointer text-base',
+          isLogin ? 'font-semibold opacity-100' : 'opacity-50',
         )}
         onClick={onSwitchToLogin}
       >
-        Login
+        Sign in
       </Button>
       <Button
         type="button"
         size="none"
         variant="ghost"
         className={cn(
-          'text-base cursor-pointer',
-          !isLogin ? 'opacity-100 font-semibold' : 'opacity-50',
+          'cursor-pointer text-base',
+          !isLogin ? 'font-semibold opacity-100' : 'opacity-50',
         )}
         onClick={onSwitchToSignup}
       >
@@ -170,6 +175,7 @@ const LoginForm = memo(function LoginForm() {
           setAuthError(error.message)
           console.error('Sign in error:', error)
         }
+        await new Promise((resolve) => setTimeout(resolve, 2000))
         if (data) router.push('/sapiens')
       } finally {
         setIsLoading(false)
@@ -185,12 +191,12 @@ const LoginForm = memo(function LoginForm() {
       initial="enter"
       animate="center"
       exit="exit"
-      className="relative w-full h-50 flex flex-col items-start"
+      className="relative flex h-50 w-full flex-col items-start"
       onSubmit={handleSubmit}
     >
       <motion.div
         variants={staggerItem}
-        className="relative w-full flex flex-col items-start gap-2"
+        className="relative flex w-full flex-col items-start gap-2"
         transition={SPRING_TRANSITION}
       >
         <InputIcon
@@ -213,7 +219,7 @@ const LoginForm = memo(function LoginForm() {
         />
         <SubmitButton
           isLoading={isLoading}
-          label="Let's Roll"
+          label="Sign me in"
           loadingLabel="Signing in..."
         />
         {authError && (
@@ -271,12 +277,12 @@ const SignupForm = memo(function SignupForm() {
       initial="enter"
       animate="center"
       exit="exit"
-      className="relative w-full h-50 flex flex-col items-start gap-2"
+      className="relative flex h-50 w-full flex-col items-start gap-2"
       onSubmit={handleSubmit}
     >
       <motion.div
         variants={staggerItem}
-        className="relative w-full flex flex-col items-start gap-2"
+        className="relative flex w-full flex-col items-start gap-2"
         transition={SPRING_TRANSITION}
       >
         <InputIcon
@@ -329,7 +335,7 @@ export default function UnauthenticatedContent() {
   const switchToSignup = useCallback(() => setIsLogin(false), [])
 
   return (
-    <motion.div className="relative w-full px-4 flex-col-center gap-3">
+    <motion.div className="flex-col-center relative w-full gap-3 px-4">
       <TabSwitcher
         isLogin={isLogin}
         onSwitchToLogin={switchToLogin}

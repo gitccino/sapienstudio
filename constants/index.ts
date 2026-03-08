@@ -37,58 +37,58 @@ import { ColorCategory, SwatchOptions } from '@/types'
 const clothOptions = {
   cloth1: Cloth1,
   cloth2: Cloth2,
-  // cloth3: Cloth3,
-  // cloth4: Cloth4,
-  // cloth5: Cloth5,
-  // cloth6: Cloth6,
-  // cloth7: Cloth7,
-  // cloth8: Cloth8,
-  // cloth9: Cloth9,
-  // cloth10: Cloth10,
-  // cloth11: Cloth11,
+  cloth3: Cloth3,
+  cloth4: Cloth4,
+  cloth5: Cloth5,
+  cloth6: Cloth6,
+  cloth7: Cloth7,
+  cloth8: Cloth8,
+  cloth9: Cloth9,
+  cloth10: Cloth10,
+  cloth11: Cloth11,
 } as const
 type ClothKey = keyof typeof clothOptions
 
 const headOptions = {
   head1: Head1,
   head2: Head2,
-  // head3: Head3,
-  // head4: Head4,
-  // head5: Head5,
-  // head6: Head6,
-  // head7: Head7,
-  // head8: Head8,
-  // head9: Head9,
-  // head10: Head10,
-  // head11: Head11,
-  // head12: Head12,
-  // head13: Head13,
-  // head14: Head14,
-  // head15: Head15,
-  // head16: Head16,
-  // head17: Head17,
-  // head18: Head18,
-  // head19: Head19,
-  // head20: Head20,
+  head3: Head3,
+  head4: Head4,
+  head5: Head5,
+  head6: Head6,
+  head7: Head7,
+  head8: Head8,
+  head9: Head9,
+  head10: Head10,
+  head11: Head11,
+  head12: Head12,
+  head13: Head13,
+  head14: Head14,
+  head15: Head15,
+  head16: Head16,
+  head17: Head17,
+  head18: Head18,
+  head19: Head19,
+  head20: Head20,
 } as const
 type HeadKey = keyof typeof headOptions
 
 const itemOptions = {
   item1: 'item1',
   item2: 'item2',
-  // item3: 'item3',
-  // item4: 'item4',
-  // item5: 'item5',
-  // item6: 'item6',
-  // item7: 'item7',
-  // item8: 'item8',
-  // item9: 'item9',
-  // item10: 'item10',
-  // item11: 'item11',
-  // item12: 'item12',
-  // item13: 'item13',
-  // item14: 'item14',
-  // item15: 'item15',
+  item3: 'item3',
+  item4: 'item4',
+  item5: 'item5',
+  item6: 'item6',
+  item7: 'item7',
+  item8: 'item8',
+  item9: 'item9',
+  item10: 'item10',
+  item11: 'item11',
+  item12: 'item12',
+  item13: 'item13',
+  item14: 'item14',
+  item15: 'item15',
 }
 type ItemKey = keyof typeof itemOptions
 
@@ -119,6 +119,7 @@ const STAGGER_CONTAINER = {
 const CONTAINER_VARIANTS = {
   hidden: { opacity: 0, y: 8, scale: 0.98 },
   visible: { opacity: 1, y: 0, scale: 1 },
+  none: { opacity: 0, y: 8, scale: 1, height: 0 },
 }
 const BUTTON_ARROW_ANIMATE = { x: [0, 2, 0] }
 const BUTTON_ARROW_TRANSITION = {
@@ -134,7 +135,7 @@ const CATEGORY_TAB_TRANSITION = {
 const CATEGORY_TAB_VARIANTS = {
   active: {
     opacity: 1,
-    scale: 1.1,
+    scale: 1.05,
     y: -0.8,
     transition: CATEGORY_TAB_TRANSITION,
   },
@@ -142,6 +143,25 @@ const CATEGORY_TAB_VARIANTS = {
     opacity: 0.5,
     scale: 1,
     y: 0.8,
+    transition: CATEGORY_TAB_TRANSITION,
+  },
+}
+
+// Loading page
+const LOADING_VARIANTS = {
+  enter: {
+    opacity: 0,
+    filter: 'blur(1px)',
+    transition: CATEGORY_TAB_TRANSITION,
+  },
+  center: {
+    opacity: 1,
+    filter: 'blur(0px)',
+    transition: CATEGORY_TAB_TRANSITION,
+  },
+  exit: {
+    opacity: 0,
+    filter: 'blur(1px)',
     transition: CATEGORY_TAB_TRANSITION,
   },
 }
@@ -157,11 +177,12 @@ type Menu = keyof typeof MENU_OPTIONS
 const SWATCH_OPTIONS: SwatchOptions = {
   background: [
     '#fafaf9',
-    '#f6f5f4',
+    '#f1f1f1',
     '#ebebe6',
     '#bebebe',
     '#949494',
     '#545454',
+    '#30302E',
   ],
   body: ['#fafaf9', '#f4d6be', '#e6bc98'],
   head: [
@@ -208,5 +229,6 @@ export {
   SWATCH_OPTIONS,
   MENU_OPTIONS,
   COLOR_CONFIG,
+  LOADING_VARIANTS,
 }
 export type { ClothKey, HeadKey, ItemKey, Menu }

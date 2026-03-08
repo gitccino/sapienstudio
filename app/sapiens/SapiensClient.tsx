@@ -1,23 +1,28 @@
 'use client'
 
-import { useState, useRef, useCallback, memo } from 'react'
-import { motion } from 'motion/react'
+import { useState, useRef, useCallback, memo, useTransition } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Body } from '@/assets'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
 import { LoadingSquares } from '@/app/register/RegisterClient'
-import { useQuery } from 'convex/react'
+import { usePreloadedQuery, useQuery, useMutation } from 'convex/react'
+import type { Preloaded } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useRouter } from 'next/navigation'
 import { ColorSection } from '@/components/color-section'
+import { CreditDisplay } from '@/components/credit-display'
 import type { ColorCategory } from '@/types'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ImageDownload02Icon,
+  Layers01Icon,
   Settings03Icon,
+  SparklesIcon,
   SunriseIcon,
   SunsetIcon,
+  TransactionHistoryIcon,
 } from '@hugeicons/core-free-icons'
 import {
   Popover,
@@ -42,17 +47,20 @@ import {
 } from '@/constants'
 import type { ClothKey, HeadKey, ItemKey, Menu } from '@/constants'
 import { useThemeStore } from '@/lib/store'
+import { generateResourceName, type AvatarConfig } from '@/lib/sapiens-resource'
+import Link from 'next/link'
+import { useLinkStatus } from 'next/link'
 
 // --- Module-level constants --- (Just in case)
 
 const SELECTED_COLOR_LIGHT_INIT: SelectedColors = {
-  background: '#fafaf9',
+  background: '#f1f1f1',
   body: '#f4d6be',
   cloth: '#292927',
   head: '#292927',
 }
 const SELECTED_COLOR_DARK_INIT: SelectedColors = {
-  background: '#141413',
+  background: '#30302E',
   body: '#f4d6be',
   cloth: '#30302E',
   head: '#30302E',
@@ -62,13 +70,24 @@ const SELECTED_COLOR_DARK_INIT: SelectedColors = {
 
 const DownloadPopover = memo(function DownloadPopover({
   avatarRef,
+  preloadedBalance,
+  avatarConfig,
 }: {
   avatarRef: React.RefObject<HTMLDivElement | null>
+  preloadedBalance: Preloaded<typeof api.functions.credits.getBalance>
+  avatarConfig: AvatarConfig
 }) {
+  const balance = usePreloadedQuery(preloadedBalance)
   const [isDownloading, setIsDownloading] = useState(false)
   const [downloadResolution, setDownloadResolution] = useState(1024)
   const [customResolution, setCustomResolution] = useState('')
   const [open, setOpen] = useState(false)
+
+  const purchaseAndRecordDownload = useMutation(
+    api.functions.downloads.purchaseAndRecordDownload,
+  )
+
+  const isInsufficient = balance < 1
 
   const handleDownload = useCallback(async () => {
     if (!avatarRef.current) return
@@ -88,21 +107,92 @@ const DownloadPopover = memo(function DownloadPopover({
     setIsDownloading(true)
     try {
       const { toPng } = await import('html-to-image')
-      const dataUrl = await toPng(avatarRef.current, {
-        cacheBust: true,
-        skipFonts: true,
-        pixelRatio: pixelRatio + 1,
-        filter: (node) => {
-          if (node instanceof HTMLElement) {
-            return !node.closest('[data-download-trigger]')
-          }
-          return true
-        },
+
+      const avatarEl = avatarRef.current
+      if (!avatarEl) return
+
+      const previousBorderRadius = avatarEl.style.borderRadius
+      const previousOverflow = avatarEl.style.overflow
+
+      avatarEl.style.borderRadius = '0'
+      avatarEl.style.overflow = 'visible'
+
+      let dataUrl: string
+      try {
+        dataUrl = await toPng(avatarEl, {
+          cacheBust: true,
+          skipFonts: true,
+          pixelRatio: pixelRatio + 1,
+          filter: (node) => {
+            if (node instanceof HTMLElement) {
+              return !node.closest('[data-download-trigger]')
+            }
+            return true
+          },
+        })
+
+        // --- Previous ---
+        const link = document.createElement('a')
+        link.download = 'sapiens-avatar.png'
+        link.href = dataUrl
+        link.click()
+      } finally {
+        avatarEl.style.borderRadius = previousBorderRadius
+        avatarEl.style.overflow = previousOverflow
+      }
+
+      // Convert to blob once so we can either share (mobile) or open in a new tab (desktop)
+      // const response = await fetch(dataUrl)
+      // const blob = await response.blob()
+
+      // Prefer native share sheet when available (iOS / mobile browsers)
+      // const file = new File([blob], 'sapiens-avatar.png', { type: 'image/png' })
+      // const canShareFile =
+      //   typeof navigator !== 'undefined' &&
+      //   'canShare' in navigator &&
+      //   navigator.canShare?.({ files: [file] })
+      // const blobUrl = URL.createObjectURL(blob)
+      // const canShareFile =
+      //   navigator.canShare && navigator.canShare({ url: blobUrl })
+      // if (!canShareFile) {
+      //   alert('Sharing is not supported on this browser.')
+      //   return
+      // }
+
+      // if (canShareFile) {
+      //   try {
+      //     await navigator.share({
+      //       files: [file],
+      //       title: 'Sapienstudio',
+      //     })
+      //     return
+      //   } catch (shareError) {
+      //     if (shareError instanceof Error && shareError.name === 'AbortError') {
+      //       // User cancelled the share sheet; don't fall back to opening a tab.
+      //       return
+      //     }
+      //     console.error('Share failed, falling back to new tab:', shareError)
+      //   }
+      // }
+
+      // Pre-record and charge the download amount
+      await purchaseAndRecordDownload({
+        resourceName: generateResourceName(avatarConfig),
+        cost: 1,
       })
-      const link = document.createElement('a')
-      link.download = 'sapiens-avatar.png'
-      link.href = dataUrl
-      link.click()
+
+      // Fallback: open generated image (desktop: new tab, iOS: same tab)
+      // const blobUrl = URL.createObjectURL(blob)
+      // const isIOS =
+      //   typeof navigator !== 'undefined' &&
+      //   /iPad|iPhone|iPod/.test(navigator.userAgent)
+
+      // if (isIOS) {
+      //   // iOS Safari often blocks async window.open; navigating the current tab is more reliable.
+      //   window.location.href = blobUrl
+      // } else {
+      //   window.open(blobUrl, '_blank')
+      // }
     } catch (err) {
       console.error('Failed to export avatar:', err)
       alert('Download failed. Please try again.')
@@ -110,7 +200,13 @@ const DownloadPopover = memo(function DownloadPopover({
       setIsDownloading(false)
       setOpen(false)
     }
-  }, [avatarRef, customResolution, downloadResolution])
+  }, [
+    avatarRef,
+    avatarConfig,
+    customResolution,
+    downloadResolution,
+    purchaseAndRecordDownload,
+  ])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -121,22 +217,39 @@ const DownloadPopover = memo(function DownloadPopover({
           variant="ghost"
           disabled={isDownloading}
           data-download-trigger
-          className="bg-background border-foreground/10 rounded-sm border-2 p-2"
+          className="bg-background border-foreground/10 box-border size-12 rounded-xl border-2 dark:box-content"
         >
           <HugeiconsIcon
             strokeWidth={2}
             icon={ImageDownload02Icon}
-            className="size-4"
+            className="size-5"
           />
         </Button>
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-56 rounded-lg border-2 p-3 shadow-lg"
+        className="w-60 rounded-xl border-2 p-3 shadow-lg"
       >
-        <div className="flex flex-col gap-3">
-          <span className="text-sm font-medium">Resolution</span>
-          <div className="flex flex-wrap gap-1">
+        <div className="flex flex-col gap-2">
+          <div className="flex-row-start gap-1 text-base font-semibold">
+            <HugeiconsIcon
+              icon={SparklesIcon}
+              className="size-5"
+              strokeWidth={1.5}
+            />
+            <span>Resolution</span>
+          </div>
+          <div className="text-muted-foreground grid h-fit w-full grid-cols-3 p-2 text-sm">
+            <span className="col-span-2">Total credits</span>
+            <span className="col-span-1 text-right font-semibold">
+              {balance < 0 ? 'Empty' : balance}
+            </span>
+            <span className="col-span-2">Credits/Download</span>
+            <span className="text-destructive col-span-1 text-right font-semibold">
+              -1
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
             {RESOLUTION_PRESETS.map((size) => (
               <Button
                 key={size}
@@ -147,7 +260,7 @@ const DownloadPopover = memo(function DownloadPopover({
                   setCustomResolution('')
                   setDownloadResolution(size)
                 }}
-                className={`rounded-sm px-2 py-0.5 text-xs ${
+                className={`rounded-md px-2 py-0.5 text-sm font-semibold ${
                   !customResolution && downloadResolution === size
                     ? 'border-foreground/80'
                     : 'opacity-30'
@@ -161,10 +274,14 @@ const DownloadPopover = memo(function DownloadPopover({
             type="button"
             size="none"
             onClick={handleDownload}
-            disabled={isDownloading}
-            className="bg-foreground/95 w-full rounded-sm py-1"
+            disabled={isDownloading || balance < 1}
+            className="bg-foreground/95 w-full rounded-md py-1 text-base dark:font-semibold"
           >
-            {isDownloading ? 'Downloading...' : 'Download'}
+            {isDownloading
+              ? 'Downloading...'
+              : balance < 1
+                ? 'Insufficient Credits'
+                : 'Download'}
           </Button>
         </div>
       </PopoverContent>
@@ -172,7 +289,13 @@ const DownloadPopover = memo(function DownloadPopover({
   )
 })
 
-const SettingsPanel = memo(function SettingsPanel() {
+const SettingsPanel = memo(function SettingsPanel({
+  onBack,
+  startTransition,
+}: {
+  onBack: (category: Menu | 'settings') => void
+  startTransition: React.TransitionStartFunction
+}) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -187,18 +310,48 @@ const SettingsPanel = memo(function SettingsPanel() {
   }, [router])
 
   return (
-    <div className="flex w-full flex-1 flex-col items-center justify-center gap-4 pb-8 md:flex-none">
-      <span className="text-foreground w-[80%] text-sm">
-        Hope you enjoyed your experience here. Sapiens Studio is a free-to-use
-        platform for creating and sharing your own Sapiens characters. Thank you
-        for using Sapiens Studio! and have a great day!
+    <div className="flex w-[80%] flex-col items-start justify-center gap-4 py-8 md:flex-none">
+      <motion.div className="w-full">
+        <Button
+          variant="ghost"
+          className="flex-row-center bg-card-background h-10 w-full gap-2 rounded-md text-base font-medium"
+          onClick={() => onBack('head')}
+        >
+          <HugeiconsIcon
+            icon={Layers01Icon}
+            className="size-5"
+            strokeWidth={2}
+          />
+          <span>Sapiens Creation</span>
+        </Button>
+      </motion.div>
+      <motion.div className="w-full">
+        {/* <Link
+          href="/sapiens/history"
+          className="flex-row-center bg-card-background h-10 w-full gap-2 rounded-md font-medium"
+        > */}
+        <button
+          onClick={() => startTransition(() => router.push('/sapiens/history'))}
+          className="flex-row-center bg-card-background h-10 w-full gap-2 rounded-md font-medium"
+        >
+          <HugeiconsIcon
+            icon={TransactionHistoryIcon}
+            className="size-5"
+            strokeWidth={2}
+          />
+          <span>Transaction History</span>
+        </button>
+        {/* </Link> */}
+      </motion.div>
+      <span className="text-muted-foreground mx-auto text-sm">
+        Hope you enjoyed your experience here
       </span>
       <Button
         type="button"
         size="none"
         variant="default"
         onClick={handleSignOut}
-        className="bg-destructive dark:text-foreground w-50 rounded-sm px-3 py-2 text-base"
+        className="bg-destructive dark:text-foreground w-full rounded-md px-3 py-2 text-base"
         disabled={isLoading}
       >
         <span>{isLoading ? 'Signing out...' : 'Sign out'}</span>
@@ -215,20 +368,23 @@ const CategoryTabs = memo(function CategoryTabs({
   onSelect: (key: Menu) => void
 }) {
   return (
-    <div className="flex w-full flex-row justify-center gap-0 overflow-hidden">
+    <div className="flex-row-center h-12 w-full gap-2">
       {(Object.keys(MENU_OPTIONS) as Menu[]).map((key) => (
         <motion.div
           key={key}
           variants={CATEGORY_TAB_VARIANTS}
           animate={selectedCategory === key ? 'active' : 'inactive'}
+          className="h-full"
         >
           <Button
             type="button"
             size="none"
             variant="default"
             className={cn(
-              'text-foreground cursor-pointer bg-transparent px-2 py-4 text-base font-medium opacity-50 will-change-transform',
-              selectedCategory === key && 'opacity-100',
+              'text-foreground bg-card-background cursor-pointer rounded-md px-3 py-2 text-base font-medium will-change-transform',
+              selectedCategory === key
+                ? 'bg-card-background opacity-100'
+                : 'bg-transparent',
             )}
             onClick={() => onSelect(key)}
           >
@@ -299,7 +455,11 @@ type SelectedColors = {
   head: string
 }
 
-export default function SapiensClient() {
+export default function SapiensClient({
+  preloadedBalance,
+}: {
+  preloadedBalance: Preloaded<typeof api.functions.credits.getBalance>
+}) {
   const { theme, setTheme } = useThemeStore()
   const currentUser = useQuery(api.auth.getCurrentUser)
 
@@ -316,6 +476,18 @@ export default function SapiensClient() {
 
   const ClothComponent = clothOptions[selectedCloth]
   const HeadComponent = headOptions[selectedHead]
+
+  const [isPending, startTransition] = useTransition()
+
+  const handleToggleTheme = useCallback(() => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark'
+    setTheme(nextTheme)
+    setSelectedColor(
+      nextTheme === 'dark'
+        ? SELECTED_COLOR_DARK_INIT
+        : SELECTED_COLOR_LIGHT_INIT,
+    )
+  }, [setTheme, theme])
 
   const handleSelectColor = useCallback(
     (color: string, opacity = 100, category: ColorCategory) => {
@@ -343,7 +515,7 @@ export default function SapiensClient() {
     [selectedCategory],
   )
 
-  if (!currentUser)
+  if (!currentUser || isPending)
     return (
       <div className="flex min-h-dvh w-full items-center justify-center">
         <LoadingSquares />
@@ -355,91 +527,119 @@ export default function SapiensClient() {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="main-container px-[5%] py-8 md:px-0"
+      className="main-container flex-col-center gap-4 px-[5%] py-8 md:px-0"
     >
+      {/* SpaiensClient Navigation bar */}
       <motion.div
         variants={CONTAINER_VARIANTS}
-        ref={avatarRef}
-        style={{ backgroundColor: selectedColor.background }}
-        className="relative isolate aspect-square w-full overflow-hidden rounded-xl"
+        className="flex h-12 w-full justify-end gap-2"
       >
-        <div className="text-foreground absolute top-2 right-2 z-50 flex flex-col items-center gap-2 text-sm">
-          <Button
-            type="button"
-            variant="default"
-            size="none"
-            className="bg-background text-foreground border-foreground/10 rounded-sm border-2 p-2"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            data-download-trigger
-          >
-            {theme === 'dark' ? (
-              <HugeiconsIcon
-                strokeWidth={2}
-                icon={SunriseIcon}
-                className="size-4"
-              />
-            ) : (
-              <HugeiconsIcon
-                strokeWidth={2}
-                icon={SunsetIcon}
-                className="size-4"
-              />
-            )}
-          </Button>
-          <Button
-            type="button"
-            variant="default"
-            size="none"
-            className="bg-background text-foreground border-foreground/10 rounded-sm border-2 p-2"
-            onClick={() => setSelectedCategory('settings')}
-            data-download-trigger
-          >
+        <CreditDisplay preloadedBalance={preloadedBalance} />
+        <Button
+          type="button"
+          variant="default"
+          size="none"
+          className="bg-card-background text-foreground size-12 rounded-xl"
+          onClick={handleToggleTheme}
+          data-download-trigger
+        >
+          {theme === 'dark' ? (
             <HugeiconsIcon
               strokeWidth={2}
-              icon={Settings03Icon}
-              className="size-4"
+              icon={SunriseIcon}
+              className="size-5"
             />
-          </Button>
-          <DownloadPopover avatarRef={avatarRef} />
-        </div>
-
-        <Body
-          color={selectedColor.body}
-          className="absolute top-1/2 left-1/2 mt-1 h-full w-full -translate-x-1/2 -translate-y-1/2"
-        />
-        {ClothComponent && (
-          <ClothComponent
-            color={selectedColor.cloth}
-            className="absolute top-1/2 left-1/2 mt-1 h-full w-full -translate-x-1/2 -translate-y-1/2"
+          ) : (
+            <HugeiconsIcon
+              strokeWidth={2}
+              icon={SunsetIcon}
+              className="size-5"
+            />
+          )}
+        </Button>
+        <Button
+          type="button"
+          variant="default"
+          size="none"
+          className="text-foreground bg-card-background size-12 rounded-xl"
+          onClick={() => setSelectedCategory('settings')}
+          data-download-trigger
+        >
+          <HugeiconsIcon
+            strokeWidth={2}
+            icon={Settings03Icon}
+            className="size-5"
           />
-        )}
-        {HeadComponent && (
-          <HeadComponent
-            color={selectedColor.head}
-            className="absolute top-1/2 left-1/2 mt-1 h-full w-full -translate-x-1/2 -translate-y-1/2"
-          />
-        )}
-        <Image
-          key={selectedItem}
-          src={`https://${DIST_DOMAIN}/items/${selectedItem}.svg`}
-          alt="Item"
-          width={500}
-          height={500}
-          crossOrigin="anonymous"
-          className="absolute top-1/2 left-1/2 mt-1 h-full w-full -translate-x-1/2 -translate-y-1/2"
-        />
+        </Button>
       </motion.div>
+
+      {selectedCategory !== 'settings' && (
+        <motion.div
+          variants={CONTAINER_VARIANTS}
+          ref={avatarRef}
+          // animate={selectedCategory === 'settings' ? 'none' : 'visible'}
+          animate="visible"
+          style={{ backgroundColor: selectedColor.background }}
+          className="relative isolate aspect-square w-full overflow-hidden rounded-2xl transition-colors duration-500 will-change-transform"
+        >
+          <div className="text-foreground absolute top-2 right-2 z-50 flex flex-col items-center gap-2 text-sm">
+            <DownloadPopover
+              avatarRef={avatarRef}
+              preloadedBalance={preloadedBalance}
+              avatarConfig={{
+                cloth: selectedCloth,
+                head: selectedHead,
+                item: selectedItem,
+                colors: selectedColor,
+              }}
+            />
+          </div>
+
+          <Body
+            color={selectedColor.body}
+            className="absolute top-1/2 left-1/2 mt-1 h-full w-full -translate-x-1/2 -translate-y-1/2"
+          />
+          {ClothComponent && (
+            <ClothComponent
+              color={selectedColor.cloth}
+              className="absolute top-1/2 left-1/2 mt-1 h-full w-full -translate-x-1/2 -translate-y-1/2"
+            />
+          )}
+          {HeadComponent && (
+            <HeadComponent
+              color={selectedColor.head}
+              className="absolute top-1/2 left-1/2 mt-1 h-full w-full -translate-x-1/2 -translate-y-1/2"
+            />
+          )}
+          <Image
+            key={selectedItem}
+            src={`https://${DIST_DOMAIN}/items/${selectedItem}.svg`}
+            alt="Item"
+            width={500}
+            height={500}
+            crossOrigin="anonymous"
+            className="absolute top-1/2 left-1/2 mt-1 h-full w-full -translate-x-1/2 -translate-y-1/2"
+          />
+        </motion.div>
+      )}
 
       <motion.div
         variants={CONTAINER_VARIANTS}
         className="relative flex w-full flex-1 flex-col items-center justify-start gap-2"
       >
-        <CategoryTabs
-          selectedCategory={selectedCategory}
-          onSelect={handleSelectCategory}
-        />
+        {selectedCategory !== 'settings' && (
+          <CategoryTabs
+            selectedCategory={selectedCategory}
+            onSelect={handleSelectCategory}
+          />
+        )}
 
-        {selectedCategory === 'settings' && <SettingsPanel />}
+        {selectedCategory === 'settings' && (
+          <SettingsPanel
+            onBack={setSelectedCategory}
+            startTransition={startTransition}
+          />
+        )}
 
         {selectedCategory === 'colors' && (
           <div className="relative flex w-full flex-col items-start justify-start gap-4 px-2">

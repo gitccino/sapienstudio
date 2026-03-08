@@ -9,8 +9,12 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as betterAuth_auth from "../betterAuth/auth.js";
+import type * as betterAuth_generatedSchema from "../betterAuth/generatedSchema.js";
+import type * as functions_credits from "../functions/credits.js";
+import type * as functions_downloads from "../functions/downloads.js";
+import type * as functions_hello from "../functions/hello.js";
 import type * as http from "../http.js";
-import type * as tasks from "../tasks.js";
 
 import type {
   ApiFromModules,
@@ -20,8 +24,12 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  "betterAuth/auth": typeof betterAuth_auth;
+  "betterAuth/generatedSchema": typeof betterAuth_generatedSchema;
+  "functions/credits": typeof functions_credits;
+  "functions/downloads": typeof functions_downloads;
+  "functions/hello": typeof functions_hello;
   http: typeof http;
-  tasks: typeof tasks;
 }>;
 
 /**

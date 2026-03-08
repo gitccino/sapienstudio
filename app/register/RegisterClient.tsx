@@ -3,18 +3,18 @@
 import { memo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
 import { redirect } from 'next/navigation'
 import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 import { Unauthenticated } from 'convex/react'
 import { motion, type Variants } from 'motion/react'
 import { CONTAINER_VARIANTS, STAGGER_CONTAINER } from '@/constants'
+import UnauthenticatedContent from './UnauthenticatedContent'
 
-const UnauthenticatedContent = dynamic(
-  () => import('./UnauthenticatedContent'),
-  { ssr: false },
-)
+// const UnauthenticatedContent = dynamic(
+//   () => import('./UnauthenticatedContent'),
+//   { ssr: false },
+// )
 
 // --- LoadingSquares with hoisted transitions ---
 
@@ -43,12 +43,12 @@ export const LoadingSquares = memo(function LoadingSquares({
   className?: string
 }) {
   return (
-    <div className="flex justify-center items-center gap-1">
+    <div className="flex items-center justify-center gap-1">
       <motion.span
         animate={SQUARE_ANIMATE}
         transition={SQUARE_TRANSITION_0}
         className={cn(
-          'w-2 aspect-square bg-foreground/95 rounded-xs',
+          'bg-foreground/95 aspect-square w-2 rounded-xs',
           className,
         )}
       />
@@ -56,7 +56,7 @@ export const LoadingSquares = memo(function LoadingSquares({
         animate={SQUARE_ANIMATE}
         transition={SQUARE_TRANSITION_1}
         className={cn(
-          'w-2 aspect-square bg-foreground/95 rounded-xs',
+          'bg-foreground/95 aspect-square w-2 rounded-xs',
           className,
         )}
       />
@@ -64,7 +64,7 @@ export const LoadingSquares = memo(function LoadingSquares({
         animate={SQUARE_ANIMATE}
         transition={SQUARE_TRANSITION_2}
         className={cn(
-          'w-2 aspect-square bg-foreground/95 rounded-xs',
+          'bg-foreground/95 aspect-square w-2 rounded-xs',
           className,
         )}
       />
@@ -77,7 +77,7 @@ export default function RegisterClient() {
 
   if (isPending)
     return (
-      <div className="w-full min-h-dvh flex items-center justify-center">
+      <div className="flex min-h-dvh w-full items-center justify-center">
         <LoadingSquares />
       </div>
     )
@@ -91,22 +91,20 @@ export default function RegisterClient() {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="main-container pt-4 md:py-0 px-[5%] md:px-0"
+      className="main-container flex-col-center gap-10 px-[5%] pt-4 md:px-0 md:py-0"
     >
       <motion.div variants={CONTAINER_VARIANTS as Variants}>
         <Link href="/">
-          <h1 className="font-black text-foreground text-7xl md:text-8xl">
-            SAPIENS
-          </h1>
+          <h1 className="text-7xl font-black md:text-8xl">SAPIENS</h1>
         </Link>
       </motion.div>
 
-      <motion.div
+      {/* <motion.div
         variants={CONTAINER_VARIANTS as Variants}
-        className="relative overflow-hidden w-full aspect-square"
+        className="relative aspect-square w-full overflow-hidden"
       >
         <Image src="/artwork.svg" alt="Artwork" width={1000} height={1000} />
-      </motion.div>
+      </motion.div> */}
 
       <motion.div variants={CONTAINER_VARIANTS as Variants} className="w-full">
         <Unauthenticated>

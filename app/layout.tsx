@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { DM_Sans, DM_Mono } from 'next/font/google'
 import './globals.css'
 import { ConvexClientProvider } from './ConvexClientProvider'
 import type { Viewport } from 'next'
@@ -11,18 +10,6 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false, // This explicitly disables user-initiated zooming as well
 }
-
-const dmSans = DM_Sans({
-  variable: '--font-dm-sans',
-  subsets: ['latin'],
-  weight: ['400', '500', '700', '800', '900'],
-})
-
-const dmMono = DM_Mono({
-  variable: '--font-dm-mono',
-  subsets: ['latin'],
-  weight: ['300', '400', '500'],
-})
 
 export const metadata: Metadata = {
   title: 'Sapienstudio',
@@ -40,7 +27,7 @@ export default function RootLayout({
       <head>
         <link rel="stylesheet" href="https://use.typekit.net/dtl8kfu.css" />
       </head>
-      <body className={`${dmMono.variable} ${dmSans.variable} antialiased`}>
+      <body className={`antialiased`}>
         <ThemeSync />
         <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
