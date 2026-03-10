@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "sed -i.bak 's/mutableHeaders.delete(\"transfer-encoding\");/mutableHeaders.delete(\"transfer-encoding\");mutableHeaders.delete(\"host\");mutableHeaders.delete(\"x-forwarded-host\");/g' node_modules/@convex-dev/better-auth/dist/nextjs/index.js"
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.10.11",

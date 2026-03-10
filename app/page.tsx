@@ -27,8 +27,6 @@ export default function Home() {
     return <Loading />
   }
 
-  console.log('Data:', data)
-
   const handleNavigate = () => {
     startTransition(() => {
       router.push('/register')

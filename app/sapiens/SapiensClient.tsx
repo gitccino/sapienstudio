@@ -1,13 +1,23 @@
 'use client'
 
-import { useState, useRef, useCallback, memo, useTransition } from 'react'
+import {
+  useState,
+  useRef,
+  useCallback,
+  memo,
+  useTransition,
+  useEffect,
+  useMemo,
+  lazy,
+  Suspense,
+} from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Body } from '@/assets'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
 import { LoadingSquares } from '@/app/register/RegisterClient'
-import { usePreloadedQuery, useQuery, useMutation } from 'convex/react'
+import { usePreloadedQuery, useMutation } from 'convex/react'
 import type { Preloaded } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useRouter } from 'next/navigation'
@@ -46,20 +56,22 @@ import {
   COLOR_CONFIG,
 } from '@/constants'
 import type { ClothKey, HeadKey, ItemKey, Menu } from '@/constants'
-import { useThemeStore } from '@/lib/store'
+import { useThemeStore, useSapiensStore } from '@/lib/store'
 import { generateResourceName, type AvatarConfig } from '@/lib/sapiens-resource'
 import Link from 'next/link'
 import { useLinkStatus } from 'next/link'
+// Lazy load non-critical fixed preview (code-split)
+const LazySapiensDisplay = lazy(() => import('@/components/sapien-display'))
 
 // --- Module-level constants --- (Just in case)
 
-const SELECTED_COLOR_LIGHT_INIT: SelectedColors = {
+export const SELECTED_COLOR_LIGHT_INIT: SelectedColors = {
   background: '#f1f1f1',
   body: '#f4d6be',
   cloth: '#292927',
   head: '#292927',
 }
-const SELECTED_COLOR_DARK_INIT: SelectedColors = {
+export const SELECTED_COLOR_DARK_INIT: SelectedColors = {
   background: '#30302E',
   body: '#f4d6be',
   cloth: '#30302E',
@@ -310,7 +322,7 @@ const SettingsPanel = memo(function SettingsPanel({
   }, [router])
 
   return (
-    <div className="flex w-[80%] flex-col items-start justify-center gap-4 py-8 md:flex-none">
+    <div className="flex w-[80%] flex-col items-start justify-center gap-2 py-8 md:flex-none">
       <motion.div className="w-full">
         <Button
           variant="ghost"
@@ -322,7 +334,7 @@ const SettingsPanel = memo(function SettingsPanel({
             className="size-5"
             strokeWidth={2}
           />
-          <span>Sapiens Creation</span>
+          <span>Back to main</span>
         </Button>
       </motion.div>
       <motion.div className="w-full">
@@ -409,10 +421,13 @@ const SapiensTraits = memo(function SapiensTraits({
   selectedKey,
   onSelect,
 }: SapiensTraitsProps) {
-  const optionKeys =
-    category === 'cloth'
-      ? (Object.keys(clothOptions) as ClothKey[])
-      : (Object.keys(headOptions) as HeadKey[])
+  const optionKeys = useMemo(
+    () =>
+      category === 'cloth'
+        ? (Object.keys(clothOptions) as ClothKey[])
+        : (Object.keys(headOptions) as HeadKey[]),
+    [category],
+  )
 
   return (
     <div className="grid w-full grid-cols-3 gap-2">
@@ -457,27 +472,84 @@ type SelectedColors = {
 
 export default function SapiensClient({
   preloadedBalance,
+  preloadedCurrentUser,
 }: {
   preloadedBalance: Preloaded<typeof api.functions.credits.getBalance>
+  preloadedCurrentUser: Preloaded<typeof api.auth.getCurrentUser>
 }) {
   const { theme, setTheme } = useThemeStore()
-  const currentUser = useQuery(api.auth.getCurrentUser)
+  const currentUser = usePreloadedQuery(preloadedCurrentUser)
+
+  const { sapiensConfig, setSapiensConfig } = useSapiensStore()
+  const {
+    colors: selectedColor,
+    cloth: selectedCloth,
+    head: selectedHead,
+    item: selectedItem,
+  } = sapiensConfig
+
+  // const [selectedColor, setSelectedColor] = useState<SelectedColors>(
+  //   theme === 'dark' ? SELECTED_COLOR_DARK_INIT : SELECTED_COLOR_LIGHT_INIT,
+  // )
+  // const [selectedCloth, setSelectedCloth] = useState<ClothKey>('cloth1')
+  // const [selectedHead, setSelectedHead] = useState<HeadKey>('head1')
+  // const [selectedItem, setSelectedItem] = useState<ItemKey>('item1')
+
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   const [selectedCategory, setSelectedCategory] = useState<Menu | 'settings'>(
     'head',
   )
-  const [selectedColor, setSelectedColor] = useState<SelectedColors>(
-    theme === 'dark' ? SELECTED_COLOR_DARK_INIT : SELECTED_COLOR_LIGHT_INIT,
+
+  const setSelectedColor = useCallback(
+    (updater: React.SetStateAction<SelectedColors>) => {
+      setSapiensConfig((prev) => ({
+        ...prev,
+        colors: typeof updater === 'function' ? updater(prev.colors) : updater,
+      }))
+    },
+    [setSapiensConfig],
   )
-  const [selectedCloth, setSelectedCloth] = useState<ClothKey>('cloth1')
-  const [selectedHead, setSelectedHead] = useState<HeadKey>('head1')
-  const [selectedItem, setSelectedItem] = useState<ItemKey>('item1')
+
+  const setSelectedCloth = useCallback(
+    (cloth: ClothKey) => {
+      setSapiensConfig((prev) => ({ ...prev, cloth }))
+    },
+    [setSapiensConfig],
+  )
+
+  const setSelectedHead = useCallback(
+    (head: HeadKey) => {
+      setSapiensConfig((prev) => ({ ...prev, head }))
+    },
+    [setSapiensConfig],
+  )
+
+  const setSelectedItem = useCallback(
+    (item: ItemKey) => {
+      setSapiensConfig((prev) => ({ ...prev, item }))
+    },
+    [setSapiensConfig],
+  )
+
   const avatarRef = useRef<HTMLDivElement>(null)
 
   const ClothComponent = clothOptions[selectedCloth]
   const HeadComponent = headOptions[selectedHead]
 
   const [isPending, startTransition] = useTransition()
+
+  // Stabilize the config object reference across renders
+  const avatarConfig = useMemo<AvatarConfig>(
+    () => ({
+      cloth: selectedCloth,
+      head: selectedHead,
+      item: selectedItem,
+      colors: selectedColor,
+    }),
+    [selectedCloth, selectedHead, selectedItem, selectedColor],
+  )
 
   const handleToggleTheme = useCallback(() => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark'
@@ -487,7 +559,7 @@ export default function SapiensClient({
         ? SELECTED_COLOR_DARK_INIT
         : SELECTED_COLOR_LIGHT_INIT,
     )
-  }, [setTheme, theme])
+  }, [setTheme, theme, setSelectedColor])
 
   const handleSelectColor = useCallback(
     (color: string, opacity = 100, category: ColorCategory) => {
@@ -499,7 +571,7 @@ export default function SapiensClient({
             : `${color}${opacity}`
       setSelectedColor((prev) => ({ ...prev, [category]: finalColor }))
     },
-    [],
+    [setSelectedColor],
   )
 
   const handleSelectCategory = useCallback(
@@ -512,10 +584,10 @@ export default function SapiensClient({
       if (selectedCategory === 'cloth') setSelectedCloth(trait as ClothKey)
       else setSelectedHead(trait as HeadKey)
     },
-    [selectedCategory],
+    [selectedCategory, setSelectedCloth, setSelectedHead],
   )
 
-  if (!currentUser || isPending)
+  if (!currentUser || isPending || !mounted)
     return (
       <div className="flex min-h-dvh w-full items-center justify-center">
         <LoadingSquares />
@@ -586,12 +658,7 @@ export default function SapiensClient({
             <DownloadPopover
               avatarRef={avatarRef}
               preloadedBalance={preloadedBalance}
-              avatarConfig={{
-                cloth: selectedCloth,
-                head: selectedHead,
-                item: selectedItem,
-                colors: selectedColor,
-              }}
+              avatarConfig={avatarConfig}
             />
           </div>
 
@@ -617,6 +684,7 @@ export default function SapiensClient({
             alt="Item"
             width={500}
             height={500}
+            loading="eager"
             crossOrigin="anonymous"
             className="absolute top-1/2 left-1/2 mt-1 h-full w-full -translate-x-1/2 -translate-y-1/2"
           />
@@ -625,7 +693,7 @@ export default function SapiensClient({
 
       <motion.div
         variants={CONTAINER_VARIANTS}
-        className="relative flex w-full flex-1 flex-col items-center justify-start gap-2"
+        className="relative flex w-full flex-1 flex-col items-center justify-start gap-2 pb-[200px]"
       >
         {selectedCategory !== 'settings' && (
           <CategoryTabs
@@ -674,6 +742,13 @@ export default function SapiensClient({
           />
         )}
       </motion.div>
+
+      <Suspense>
+        <LazySapiensDisplay
+          sapiensConfig={avatarConfig}
+          className="pointer-events-none fixed right-0 bottom-0 h-70 w-70 translate-x-[20%]"
+        />
+      </Suspense>
     </motion.main>
   )
 }

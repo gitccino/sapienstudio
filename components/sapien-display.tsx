@@ -8,11 +8,16 @@ import {
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import type { AvatarConfig } from '@/lib/sapiens-resource'
+import { forwardRef } from 'react'
 
-export default function SapiensDisplay({
-  sapiensConfig,
-  className,
-}: { sapiensConfig: AvatarConfig } & React.ComponentProps<'div'>) {
+export default forwardRef(function SapiensDisplay(
+  {
+    sapiensConfig,
+    className,
+    ...props
+  }: { sapiensConfig: AvatarConfig } & React.ComponentProps<'div'>,
+  ref: React.ForwardedRef<HTMLDivElement>,
+) {
   const selectedColor = sapiensConfig.colors
   const selectedCloth = sapiensConfig.cloth
   const selectedHead = sapiensConfig.head
@@ -22,7 +27,9 @@ export default function SapiensDisplay({
 
   return (
     <div
-      className={cn('relative h-40 w-40 overflow-hidden rounded-xl', className)}
+      ref={ref}
+      className={cn('relative h-40 w-40 overflow-hidden', className)}
+      {...props}
     >
       <Body
         color={selectedColor.body}
@@ -51,4 +58,4 @@ export default function SapiensDisplay({
       />
     </div>
   )
-}
+})

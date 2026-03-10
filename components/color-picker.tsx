@@ -37,7 +37,7 @@ export function ColorPicker({
   )
 
   return (
-    <div className="flex flex-row items-center justify-start gap-2 px-1.5">
+    <div className="flex flex-row items-center justify-start gap-2 px-1.5 md:px-6">
       {isEyedropperSupported ? (
         <div
           className="border-foreground/10 box-content flex items-center justify-center rounded-sm border-2"

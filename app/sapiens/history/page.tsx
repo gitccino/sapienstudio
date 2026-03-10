@@ -4,11 +4,17 @@ import { api } from '@/convex/_generated/api'
 import HistoryClient from './HistoryClient'
 
 export default async function SapiensHistory() {
+  let authed = false
+  try {
+    authed = await isAuthenticated()
+  } catch (error) {
+    console.error(error)
+  }
+
+  if (!authed) redirect('/register')
+
   let preloadedHistory
   try {
-    const authed = await isAuthenticated()
-    if (!authed) redirect('/register')
-
     preloadedHistory = await preloadAuthQuery(
       api.functions.downloads.getDownloadHistory,
     )

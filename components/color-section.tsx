@@ -1,12 +1,12 @@
 'use client'
 
+import { memo } from 'react'
+
 import { Button } from '@/components/ui/button'
 import type { ColorCategory } from '@/types'
 import { cn } from '@/lib/utils'
 import { motion } from 'motion/react'
 import { ColorPicker } from '@/components/color-picker'
-
-const SWATCH_SIZE = 8 * 4
 
 const colorVariants = {
   active: {
@@ -35,7 +35,7 @@ type ColorSectionProps = {
   ) => void
 }
 
-export function ColorSection({
+export const ColorSection = memo(function ColorSection({
   category,
   label,
   colorOptions,
@@ -51,7 +51,7 @@ export function ColorSection({
         onChangeAction={onSelectColorAction}
       />
       <div className="no-scrollbar w-full min-w-0 overflow-x-auto overflow-y-hidden">
-        <div className="flex w-max flex-row flex-nowrap gap-1.5 p-1.5">
+        <div className="flex w-full flex-row flex-wrap justify-start gap-1.5 px-0.5 py-1.5 md:justify-center">
           <motion.div
             key={`${category}-transparent`}
             variants={colorVariants}
@@ -67,17 +67,16 @@ export function ColorSection({
               )}
             >
               <div
+                className="aspect-square h-8 w-8 md:h-10 md:w-10"
                 style={{
                   background:
                     'repeating-conic-gradient(#FFFEFE 0 25%, #E1E1E1 0 50%) 50% / 8px 8px',
-                  height: SWATCH_SIZE,
-                  width: SWATCH_SIZE,
                 }}
               />
             </Button>
           </motion.div>
 
-          {colorOptions.map((color) => (
+          {colorOptions.map((color, index) => (
             <motion.div
               key={`${category}-${color}`}
               variants={colorVariants}
@@ -93,12 +92,11 @@ export function ColorSection({
                 )}
               >
                 <div
+                  className="aspect-square h-8 w-8 md:h-10 md:w-10"
                   style={{
                     backgroundColor: color,
-                    height: SWATCH_SIZE,
-                    width: SWATCH_SIZE,
                   }}
-                />
+                ></div>
               </Button>
             </motion.div>
           ))}
@@ -106,4 +104,4 @@ export function ColorSection({
       </div>
     </div>
   )
-}
+})

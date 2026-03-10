@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
@@ -11,12 +12,12 @@ type SapiensItemsProps = {
 
 const DIST_DOMAIN = process.env.NEXT_PUBLIC_DIST_DOMAIN_NAME
 
-export function SapiensItems({
+export const SapiensItems = memo(function SapiensItems({
   selectedItem,
   setSelectedTrait,
 }: SapiensItemsProps) {
   return (
-    <div className="w-full grid grid-cols-3 gap2">
+    <div className="gap2 grid w-full grid-cols-3">
       {Object.keys(itemOptions).map((itemKey) => (
         <Button
           key={itemKey}
@@ -25,7 +26,7 @@ export function SapiensItems({
           variant="default"
           onClick={() => setSelectedTrait(itemKey as ItemKey)}
           className={cn(
-            'overflow-hidden relative rounded-xl border-2 border-background bg-transparent w-full aspect-square',
+            'border-background relative aspect-square w-full overflow-hidden rounded-xl border-2 bg-transparent',
             selectedItem === itemKey && 'border-foreground/10',
           )}
         >
@@ -34,10 +35,10 @@ export function SapiensItems({
             height={500}
             src={`https://${DIST_DOMAIN}/items/${itemKey}.svg`}
             alt={`${itemKey} Display`}
-            className="size-full scale-200 translate-y-1/2"
+            className="size-full translate-y-1/2 scale-200"
           />
         </Button>
       ))}
     </div>
   )
-}
+})

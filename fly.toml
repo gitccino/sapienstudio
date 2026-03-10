@@ -7,6 +7,11 @@ app = 'notion-sapiens'
 primary_region = 'iad'
 
 [build]
+  [build.args]
+    NEXT_PUBLIC_CONVEX_URL = "https://qualified-scorpion-992.convex.cloud"
+    NEXT_PUBLIC_CONVEX_SITE_URL = "https://qualified-scorpion-992.convex.site"
+    NEXT_PUBLIC_SITE_URL = "https://notion-sapiens.fly.dev"
+    NEXT_PUBLIC_DIST_DOMAIN_NAME = "distribution.sapienstudio.art"
 
 [http_service]
   internal_port = 3000
