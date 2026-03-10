@@ -3,10 +3,35 @@
 import { Preloaded, usePreloadedQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { Wallet01Icon } from '@hugeicons/core-free-icons'
+import { AiImageIcon, Wallet01Icon } from '@hugeicons/core-free-icons'
 import { CreditGift } from './credit-gift'
 import { cn } from '@/lib/utils'
+import dynamic from 'next/dynamic'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { useState, useCallback, memo } from 'react'
+import { Button } from './ui/button'
 
+// ⚡ Lazy Load Non-Critical UI: Modals are perfect for deferring component load
+const CreditDaily = dynamic(() => import('@/components/credit-daily'), {
+  loading: () => (
+    <div className="bg-card-background h-24 w-full animate-pulse rounded-lg" />
+  ),
+})
+
+const CREDIT_OPTIONS = [
+  { credit: 5, price: 1 },
+  { credit: 20, price: 3 },
+  { credit: 40, price: 5 },
+].map((option, id) => ({ id, ...option }))
+
+// ⚡ Shift Burden to the Server: Next.js + Convex preloaded queries handles data hydration effortlessly
 export function CreditDisplay({
   preloadedBalance,
   className,
@@ -15,27 +40,144 @@ export function CreditDisplay({
 }) {
   // This hook takes the instant server data, but subscribes to WebSocket updates!
   const balance = usePreloadedQuery(preloadedBalance)
+
   return (
-    <div
-      className={cn(
-        'flex-row-start bg-card-background gap-2 rounded-xl pl-4',
-        className,
-      )}
-    >
-      <HugeiconsIcon icon={Wallet01Icon} strokeWidth={2} className="size-5" />
-      <div className="flex-row-center gap-1 pb-0.5 text-base">
-        <span className="font-semibold">
-          {balance === -1
-            ? 'Empty'
-            : balance === 0
-              ? 'No credits'
-              : `${balance} credits`}
-        </span>
-      </div>
-      <div className="flex-row-start">
-        <CreditGift />
-        <CreditGift amount={-1} />
-      </div>
+    <div className={cn('', className)}>
+      <Dialog>
+        <DialogTrigger className="flex-row-start bg-card-background h-full gap-2 rounded-xl px-3">
+          <HugeiconsIcon
+            icon={Wallet01Icon}
+            strokeWidth={2}
+            className="size-5"
+          />
+          <div className="flex-row-center gap-1 pb-0.5 text-base">
+            <span className="font-semibold">
+              {balance === -1
+                ? 'Empty'
+                : balance === 0
+                  ? 'No credits'
+                  : `${balance} credits`}
+            </span>
+          </div>
+        </DialogTrigger>
+        <DialogContent showCloseButton={false} className="w-[80%]">
+          <DialogHeader className="">
+            <DialogTitle className="mb-4">Credits Wallet</DialogTitle>
+            <div className="flex-row-start bg-card-background h-10 w-full gap-2 rounded-lg px-3 text-sm">
+              <HugeiconsIcon
+                icon={Wallet01Icon}
+                strokeWidth={1.5}
+                className="size-5"
+              />
+              <span>{balance === 0 ? 'No' : balance} Credits</span>
+              <CreditGift className="ml-auto" />
+              <CreditGift amount={-1} />
+            </div>
+
+            <BuyCreditsSection />
+
+            <Splitter />
+            <CreditDaily userBalance={balance} />
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
+
+// ⚡ Colocate Your State: Moved state down so that CreditDisplay
+// isn't forced to re-render when purely changing a UI selection.
+const BuyCreditsSection = memo(function BuyCreditsSection() {
+  const [selectedCreditOption, setSelectedCreditOption] = useState(
+    CREDIT_OPTIONS[0],
+  )
+
+  return (
+    <>
+      <BuyCreditOptions
+        selectedOption={selectedCreditOption}
+        onSelect={setSelectedCreditOption}
+      />
+      <Button
+        variant="ghost"
+        size="opticalCenter"
+        className="bg-surface-beige text-background font-semibold"
+      >
+        Buy {selectedCreditOption.credit} credits
+      </Button>
+    </>
+  )
+})
+
+type BuyCreditOptionType = (typeof CREDIT_OPTIONS)[number]
+
+type BuyCreditOptionsProps = {
+  selectedOption: BuyCreditOptionType
+  onSelect: (option: BuyCreditOptionType) => void
+}
+
+// ⚡ Master Memoization: Avoid re-rendering lists unnecessarily
+const BuyCreditOptions = memo(function BuyCreditOptions({
+  selectedOption,
+  onSelect,
+}: BuyCreditOptionsProps) {
+  return (
+    <div className="flex flex-row items-center justify-around gap-2">
+      {CREDIT_OPTIONS.map((option) => (
+        <BuyCreditOptionItem
+          key={option.id}
+          option={option}
+          isSelected={selectedOption.id === option.id}
+          onSelect={onSelect}
+        />
+      ))}
+    </div>
+  )
+})
+
+type BuyCreditOptionItemProps = {
+  option: BuyCreditOptionType
+  isSelected: boolean
+  onSelect: (option: BuyCreditOptionType) => void
+}
+
+// ⚡ Optimize List Rendering: Extracting item components to maintain independent closure
+// ⚡ Stabilize Prop References: `useCallback` secures function identity
+const BuyCreditOptionItem = memo(function BuyCreditOptionItem({
+  option,
+  isSelected,
+  onSelect,
+}: BuyCreditOptionItemProps) {
+  const { credit, price } = option
+
+  const handleClick = useCallback(() => {
+    onSelect(option)
+  }, [onSelect, option])
+
+  return (
+    <div
+      className={cn(
+        'flex-col-start bg-card-background w-full cursor-pointer rounded-lg border-2 p-2 transition-colors',
+        isSelected
+          ? 'border-foreground/10'
+          : 'border-card-background opacity-60 hover:opacity-100',
+      )}
+      onClick={handleClick}
+    >
+      <div className="flex-row-center text-reward gap-1 text-sm font-semibold">
+        <HugeiconsIcon icon={AiImageIcon} className="size-4" strokeWidth={2} />
+        <span>{credit}</span>
+      </div>
+      <span>
+        ${price}{' '}
+        <span className="text-muted-foreground text-xs">
+          ({price / credit})
+        </span>
+      </span>
+    </div>
+  )
+})
+
+const Splitter = memo(function Splitter() {
+  return <div className="bg-card-background mx-auto my-2 h-px w-[90%]"></div>
+})

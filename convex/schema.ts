@@ -9,6 +9,7 @@ export default defineSchema({
   userCredits: defineTable({
     userId: v.string(),
     totalCredits: v.number(),
+    lastDailyClaimAt: v.optional(v.number()),
     updatedAt: v.number(),
   }).index('userId', ['userId']),
   downloadHistory: defineTable({

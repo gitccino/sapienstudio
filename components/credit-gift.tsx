@@ -8,7 +8,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { Button } from './ui/button'
 import { useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { useState } from 'react'
+import { useState, useCallback, memo } from 'react'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -16,21 +16,24 @@ type CreditGiftProps = {
   amount?: number
 }
 
-export function CreditGift({
+// ⚡ Master Memoization: Prevent rerendering unimpacted components
+export const CreditGift = memo(function CreditGift({
   amount = 1,
   className,
 }: CreditGiftProps & React.ComponentProps<'div'>) {
   const adjustCredits = useMutation(api.functions.credits.adjustCredits)
   const [isPending, setIsPending] = useState(false)
 
-  const handleAdjustCredits = async () => {
+  // ⚡ Stabilize Your Prop References: Protect inline function bindings from creating garbage references
+  const handleAdjustCredits = useCallback(async () => {
+    if (isPending) return
     setIsPending(true)
     try {
       await adjustCredits({ amount })
     } finally {
       setIsPending(false)
     }
-  }
+  }, [amount, adjustCredits, isPending])
 
   return (
     <div className={cn('flex-row-center h-full', className)}>
@@ -39,7 +42,7 @@ export function CreditGift({
         size="none"
         onClick={handleAdjustCredits}
         disabled={isPending}
-        className="border-foreground/10 h-[70%] cursor-pointer rounded-none border-l pr-2.5 pl-2"
+        className="h-[70%] cursor-pointer rounded-none"
       >
         {isPending ? (
           <Loader2 className="text-foreground size-3.5 animate-spin" />
@@ -63,4 +66,4 @@ export function CreditGift({
       </Button>
     </div>
   )
-}
+})

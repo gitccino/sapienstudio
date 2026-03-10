@@ -88,3 +88,72 @@ export const adjustCredits = mutation({
     }
   },
 })
+
+// Hardcoded for now, but abstracting as a constant to easily change or
+// hook up to a database settings table in the future.
+const DAILY_REWARD_AMOUNT = 1
+
+export const claimDailyReward = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await authComponent.safeGetAuthUser(ctx)
+    if (!user) {
+      throw new Error('Unauthorized: You must logged in to claim daily reward.')
+    }
+    const userId = user.userId || user._id
+
+    // Using server time securely prevents client-side timezone manipulation
+    const now = Date.now()
+
+    const wallet = await ctx.db
+      .query('userCredits')
+      .withIndex('userId', (q) => q.eq('userId', userId))
+      .unique()
+
+    if (!wallet) {
+      await ctx.db.insert('userCredits', {
+        userId,
+        totalCredits: DAILY_REWARD_AMOUNT,
+        lastDailyClaimAt: now,
+        updatedAt: now,
+      })
+      return {
+        success: true,
+        newBalance: DAILY_REWARD_AMOUNT,
+        message: 'Daily reward claimed successfully',
+      }
+    }
+
+    if (wallet.lastDailyClaimAt !== undefined) {
+      // Check if last claim was today in UTC
+      const lastClaimDate = new Date(wallet.lastDailyClaimAt)
+      const nowDate = new Date(now)
+
+      const isSameDayUTC =
+        lastClaimDate.getUTCFullYear() === nowDate.getUTCFullYear() &&
+        lastClaimDate.getUTCMonth() === nowDate.getUTCMonth() &&
+        lastClaimDate.getUTCDate() === nowDate.getUTCDate()
+
+      if (isSameDayUTC) {
+        return {
+          success: false,
+          newBalance: wallet.totalCredits,
+          message: 'Already claimed today',
+        }
+      }
+    }
+
+    const newBalance = wallet.totalCredits + DAILY_REWARD_AMOUNT
+    await ctx.db.patch(wallet._id, {
+      totalCredits: newBalance,
+      lastDailyClaimAt: now,
+      updatedAt: now,
+    })
+
+    return {
+      success: true,
+      newBalance,
+      message: 'Daily reward claimed successfully',
+    }
+  },
+})

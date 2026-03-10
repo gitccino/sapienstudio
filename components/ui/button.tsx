@@ -31,6 +31,7 @@ const buttonVariants = cva(
         'icon-sm': 'size-8',
         'icon-lg': 'size-10',
         none: '',
+        opticalCenter: 'h-10 gap-2 pl-3 pr-4 rounded-lg',
       },
     },
     defaultVariants: {
