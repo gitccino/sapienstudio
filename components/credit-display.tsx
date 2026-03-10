@@ -60,7 +60,7 @@ export function CreditDisplay({
             </span>
           </div>
         </DialogTrigger>
-        <DialogContent showCloseButton={false} className="w-[80%]">
+        <DialogContent showCloseButton={false} className="w-[80%] rounded-2xl">
           <DialogHeader className="">
             <DialogTitle className="mb-4">Credits Wallet</DialogTitle>
             <div className="flex-row-start bg-card-background h-10 w-full gap-2 rounded-lg px-3 text-sm">

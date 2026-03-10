@@ -9,6 +9,8 @@ import { authComponent } from '../auth'
 // updatedAt: v.number(),
 // }).index('userId', ['userId']),
 
+const ERROR_401 = 'Unauthorized: You must logged in to get credits'
+
 export const getBalance = query({
   args: {},
   handler: async (ctx) => {
@@ -155,5 +157,69 @@ export const claimDailyReward = mutation({
       newBalance,
       message: 'Daily reward claimed successfully',
     }
+  },
+})
+
+function verifySameDayUTC(lastClaimDate: Date) {
+  const nowDate = new Date(Date.now())
+  return (
+    lastClaimDate.getUTCFullYear() === nowDate.getUTCFullYear() &&
+    lastClaimDate.getUTCMonth() === nowDate.getUTCMonth() &&
+    lastClaimDate.getUTCDate() === nowDate.getUTCDate()
+  )
+}
+
+export const getDailyClaimStatus = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await authComponent.safeGetAuthUser(ctx)
+    if (!user) {
+      throw new Error(ERROR_401)
+    }
+
+    const userId = user.userId || user._id
+    const wallet = await ctx.db
+      .query('userCredits')
+      .withIndex('userId', (q) => q.eq('userId', userId))
+      .unique()
+
+    if (!wallet || wallet.lastDailyClaimAt === undefined) {
+      return { canClaim: true }
+    }
+
+    const lastClaimDate = new Date(wallet.lastDailyClaimAt)
+    const isSameDayUTC = verifySameDayUTC(lastClaimDate)
+    return { canClaim: !isSameDayUTC }
+  },
+})
+
+/**
+ * Testing purpose
+ * > Clear lastClaimDate
+ */
+export const refreshLastClaimDate = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await authComponent.safeGetAuthUser(ctx)
+    if (!user) {
+      throw new Error(ERROR_401)
+    }
+
+    const userId = user.userId || user._id
+    const wallet = await ctx.db
+      .query('userCredits')
+      .withIndex('userId', (q) => q.eq('userId', userId))
+      .unique()
+    if (!wallet || wallet.lastDailyClaimAt === undefined) {
+      // Do nothing
+      return { refreshStatus: 'true' }
+    }
+
+    // In Convex, patching an optional property with undefined drops it from the document
+    await ctx.db.patch(wallet._id, {
+      lastDailyClaimAt: undefined,
+    })
+
+    return { refreshStatus: 'true' }
   },
 })
