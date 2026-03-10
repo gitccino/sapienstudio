@@ -1,6 +1,6 @@
 # 🎨 Sapienstudio
 
-[🔗 Enter Sapienstudio.art](https://sapienstudio.art)
+🔗 [Enter Sapienstudio.art](https://sapienstudio.art)
 
 A dynamic creativity platform bridging the gap between high-quality 2D illustration and interactive web experiences, allowing users to create, customize, and share unique characters.
 
