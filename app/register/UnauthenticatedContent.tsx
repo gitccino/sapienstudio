@@ -262,6 +262,7 @@ const SignupForm = memo(function SignupForm() {
           setAuthError(error.message)
           console.error('Sign up error:', error)
         }
+        await new Promise((resolve) => setTimeout(resolve, 2000))
         if (data) router.push('/sapiens')
       } finally {
         setIsLoading(false)

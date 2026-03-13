@@ -31,6 +31,11 @@ import {
   Cloth9,
   Cloth10,
   Cloth11,
+  Cloth12,
+  Cloth13,
+  Cloth14,
+  Cloth15,
+  Cloth16,
 } from '@/assets'
 import { ColorCategory, SwatchOptions } from '@/types'
 
@@ -46,6 +51,11 @@ const clothOptions = {
   cloth9: Cloth9,
   cloth10: Cloth10,
   cloth11: Cloth11,
+  cloth12: Cloth12,
+  cloth13: Cloth13,
+  cloth14: Cloth14,
+  cloth15: Cloth15,
+  cloth16: Cloth16,
 } as const
 type ClothKey = keyof typeof clothOptions
 
@@ -89,6 +99,14 @@ const itemOptions = {
   item13: 'item13',
   item14: 'item14',
   item15: 'item15',
+  item16: 'item16',
+  item17: 'item17',
+  item18: 'item18',
+  item19: 'item19',
+  item20: 'item20',
+  item21: 'item21',
+  item22: 'item22',
+  item23: 'item23',
 }
 type ItemKey = keyof typeof itemOptions
 
@@ -217,7 +235,7 @@ const SWATCH_OPTIONS: SwatchOptions = {
     '#e6bc98',
     '#C08261',
     '#9C6452',
-    '#292927',
+    // '#292927',
   ],
   head: HEAD_CLOTH_SWATCH,
   cloth: HEAD_CLOTH_SWATCH,

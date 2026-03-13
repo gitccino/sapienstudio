@@ -60,6 +60,7 @@ import { useThemeStore, useSapiensStore } from '@/lib/store'
 import { generateResourceName, type AvatarConfig } from '@/lib/sapiens-resource'
 import Link from 'next/link'
 import { useLinkStatus } from 'next/link'
+import { fireConfetti } from '@/lib/confetti'
 // Lazy load non-critical fixed preview (code-split)
 const LazySapiensDisplay = lazy(() => import('@/components/sapien-display'))
 
@@ -134,7 +135,7 @@ const DownloadPopover = memo(function DownloadPopover({
         dataUrl = await toPng(avatarEl, {
           cacheBust: true,
           skipFonts: true,
-          pixelRatio: pixelRatio + 1,
+          pixelRatio: pixelRatio,
           filter: (node) => {
             if (node instanceof HTMLElement) {
               return !node.closest('[data-download-trigger]')
@@ -338,10 +339,6 @@ const SettingsPanel = memo(function SettingsPanel({
         </Button>
       </motion.div>
       <motion.div className="w-full">
-        {/* <Link
-          href="/sapiens/history"
-          className="flex-row-center bg-card-background h-10 w-full gap-2 rounded-md font-medium"
-        > */}
         <button
           onClick={() => startTransition(() => router.push('/sapiens/history'))}
           className="flex-row-center bg-card-background h-10 w-full gap-2 rounded-md font-medium"
@@ -351,9 +348,23 @@ const SettingsPanel = memo(function SettingsPanel({
             className="size-5"
             strokeWidth={2}
           />
-          <span>Transaction History</span>
+          <span>Download History</span>
         </button>
-        {/* </Link> */}
+      </motion.div>
+      <motion.div className="w-full">
+        <button
+          onClick={() =>
+            startTransition(() => router.push('/sapiens/purchase'))
+          }
+          className="flex-row-center bg-card-background h-10 w-full gap-2 rounded-md font-medium"
+        >
+          <HugeiconsIcon
+            icon={TransactionHistoryIcon}
+            className="size-5"
+            strokeWidth={2}
+          />
+          <span>Purchase History</span>
+        </button>
       </motion.div>
       <span className="text-muted-foreground mx-auto text-sm">
         Hope you enjoyed your experience here
@@ -495,8 +506,18 @@ export default function SapiensClient({
   // const [selectedHead, setSelectedHead] = useState<HeadKey>('head1')
   // const [selectedItem, setSelectedItem] = useState<ItemKey>('item1')
 
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    // Check for successful payment redirect
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('success') === 'true') {
+      // Defer DOM mutation and URL replace to prevent Next.js hydration errors
+      setTimeout(() => {
+        fireConfetti()
+        // Remove the query param so it doesn't fire again on reload
+        window.history.replaceState(null, '', window.location.pathname)
+      }, 500)
+    }
+  }, [])
 
   const [selectedCategory, setSelectedCategory] = useState<Menu | 'settings'>(
     'head',
@@ -554,12 +575,12 @@ export default function SapiensClient({
   const handleToggleTheme = useCallback(() => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark'
     setTheme(nextTheme)
-    setSelectedColor(
-      nextTheme === 'dark'
-        ? SELECTED_COLOR_DARK_INIT
-        : SELECTED_COLOR_LIGHT_INIT,
-    )
-  }, [setTheme, theme, setSelectedColor])
+    // setSelectedColor(
+    //   nextTheme === 'dark'
+    //     ? SELECTED_COLOR_DARK_INIT
+    //     : SELECTED_COLOR_LIGHT_INIT,
+    // )
+  }, [setTheme, theme])
 
   const handleSelectColor = useCallback(
     (color: string, opacity = 100, category: ColorCategory) => {
@@ -587,7 +608,7 @@ export default function SapiensClient({
     [selectedCategory, setSelectedCloth, setSelectedHead],
   )
 
-  if (!currentUser || isPending || !mounted)
+  if (!currentUser || isPending)
     return (
       <div className="flex min-h-dvh w-full items-center justify-center">
         <LoadingSquares />

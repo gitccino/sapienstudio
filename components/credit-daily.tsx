@@ -9,6 +9,7 @@ import { Button } from './ui/button'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useState } from 'react'
+import { fireConfetti } from '@/lib/confetti'
 
 type CreditDailyProps = {
   userBalance: number
@@ -40,6 +41,7 @@ export default function CreditDaily({ userBalance }: CreditDailyProps) {
       // claimDailyReward returns structured { success, message, newBalance }
       if (result.success) {
         setFeedback({ type: 'success', message: result.message })
+        fireConfetti()
       } else {
         setFeedback({ type: 'error', message: result.message })
       }
@@ -94,7 +96,7 @@ export default function CreditDaily({ userBalance }: CreditDailyProps) {
           ** Check back daily to claim free credit
         </span>
       )}
-      {!canClaim && (
+      {/* {!canClaim && (
         <Button
           variant="ghost"
           size="none"
@@ -109,7 +111,7 @@ export default function CreditDaily({ userBalance }: CreditDailyProps) {
           />
           <span>Refresh Daily Reward</span>
         </Button>
-      )}
+      )} */}
     </div>
   )
 }

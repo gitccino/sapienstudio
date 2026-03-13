@@ -13,7 +13,9 @@
     "@convex-dev/better-auth": "^0.10.11",
     "@hugeicons/core-free-icons": "^3.1.1",
     "@hugeicons/react": "^1.1.5",
+    "@types/canvas-confetti": "^1.9.0",
     "better-auth": "1.4.9",
+    "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "^1.32.0",
@@ -26,6 +28,7 @@
     "react": "19.2.3",
     "react-color": "^2.19.3",
     "react-dom": "19.2.3",
+    "stripe": "^20.4.1",
     "tailwind-merge": "^3.5.0",
     "use-eye-dropper": "^1.7.2",
     "zustand": "^5.0.11"

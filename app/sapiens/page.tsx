@@ -8,12 +8,9 @@ import { HotspotOfflineIcon } from '@hugeicons/core-free-icons'
 export default async function SapiensPage() {
   let authed = false
   try {
-    console.log('isAuthenticated:')
     authed = await isAuthenticated()
-    console.log('├─ Status: DONE')
   } catch (error) {
     console.error(error)
-    console.log('├─ Status: ERROR')
   }
 
   if (!authed) redirect('/register')
@@ -21,16 +18,13 @@ export default async function SapiensPage() {
   let preloadedBalance
   let preloadedCurrentUser
   try {
-    console.log('preloadedBalance:')
     ;[preloadedBalance, preloadedCurrentUser] = await Promise.all([
       preloadAuthQuery(api.functions.credits.getBalance),
       preloadAuthQuery(api.auth.getCurrentUser),
     ])
-    console.log('├─ Status: DONE')
   } catch (error) {
     // Fall through to client-side auth check in SapiensClient
     console.error(error)
-    console.log('├─ Status: ERROR')
   }
 
   return preloadedBalance && preloadedCurrentUser ? (

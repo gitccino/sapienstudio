@@ -1,5 +1,5 @@
 import { v } from 'convex/values'
-import { mutation, query } from '../_generated/server'
+import { internalMutation, mutation, query } from '../_generated/server'
 import { authComponent } from '../auth'
 
 // --- Schema ---
@@ -8,8 +8,6 @@ import { authComponent } from '../auth'
 // totalCredits: v.number(),
 // updatedAt: v.number(),
 // }).index('userId', ['userId']),
-
-const ERROR_401 = 'Unauthorized: You must logged in to get credits'
 
 export const getBalance = query({
   args: {},
@@ -90,6 +88,59 @@ export const adjustCredits = mutation({
     }
   },
 })
+
+export const fulfillPurchase = internalMutation({
+  args: {
+    userId: v.string(),
+    amount: v.number(),
+    amountPaid: v.number(),
+    stripeSessionId: v.string(),
+    stripePaymentIntentId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now()
+
+    // 1. Find the user's wallet
+    const wallet = await ctx.db
+      .query('userCredits')
+      .withIndex('userId', (q) => q.eq('userId', args.userId))
+      .unique()
+
+    if (wallet) {
+      // 2a. Wallet exists: Update balance
+      await ctx.db.patch(wallet._id, {
+        totalCredits: wallet.totalCredits + args.amount,
+        updatedAt: now,
+      })
+    } else {
+      // 2b. First-time buyer: Create wallet
+      await ctx.db.insert('userCredits', {
+        userId: args.userId,
+        totalCredits: args.amount,
+        updatedAt: now,
+      })
+    }
+
+    await ctx.db.insert('purchaseHistory', {
+      userId: args.userId,
+      creditsAdded: args.amount,
+      amountPaid: args.amountPaid,
+      stripeSessionId: args.stripeSessionId,
+      stripePaymentIntentId: args.stripePaymentIntentId,
+      purchasedAt: now,
+    })
+  },
+})
+
+// export const fulfillAndRecordPurchase = internalMutation({
+//   args: {
+//     userId: v.string(),
+//     amount:
+//   },
+//   handler: async (ctx, args) => {
+
+//   }
+// })
 
 // Hardcoded for now, but abstracting as a constant to easily change or
 // hook up to a database settings table in the future.
@@ -174,7 +225,9 @@ export const getDailyClaimStatus = query({
   handler: async (ctx) => {
     const user = await authComponent.safeGetAuthUser(ctx)
     if (!user) {
-      throw new Error(ERROR_401)
+      throw new Error(
+        'Unauthorized: You must logged in to get daily claim status',
+      )
     }
 
     const userId = user.userId || user._id
@@ -202,7 +255,9 @@ export const refreshLastClaimDate = mutation({
   handler: async (ctx) => {
     const user = await authComponent.safeGetAuthUser(ctx)
     if (!user) {
-      throw new Error(ERROR_401)
+      throw new Error(
+        'Unauthorized: You must logged in to refresh daily credit quota.',
+      )
     }
 
     const userId = user.userId || user._id

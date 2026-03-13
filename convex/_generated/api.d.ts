@@ -14,7 +14,9 @@ import type * as betterAuth_generatedSchema from "../betterAuth/generatedSchema.
 import type * as functions_credits from "../functions/credits.js";
 import type * as functions_downloads from "../functions/downloads.js";
 import type * as functions_hello from "../functions/hello.js";
+import type * as functions_purchase from "../functions/purchase.js";
 import type * as http from "../http.js";
+import type * as payments_stripe from "../payments/stripe.js";
 
 import type {
   ApiFromModules,
@@ -29,7 +31,9 @@ declare const fullApi: ApiFromModules<{
   "functions/credits": typeof functions_credits;
   "functions/downloads": typeof functions_downloads;
   "functions/hello": typeof functions_hello;
+  "functions/purchase": typeof functions_purchase;
   http: typeof http;
+  "payments/stripe": typeof payments_stripe;
 }>;
 
 /**

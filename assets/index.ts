@@ -33,6 +33,11 @@ const Cloth8 = createCloth(8)
 const Cloth9 = createCloth(9)
 const Cloth10 = createCloth(10)
 const Cloth11 = createCloth(11)
+const Cloth12 = createCloth(12)
+const Cloth13 = createCloth(13)
+const Cloth14 = createCloth(14)
+const Cloth15 = createCloth(15)
+const Cloth16 = createCloth(16)
 
 const Head1 = createHead(1)
 const Head2 = createHead(2)
@@ -71,6 +76,14 @@ const Item12 = createItem(12)
 const Item13 = createItem(13)
 const Item14 = createItem(14)
 const Item15 = createItem(15)
+const Item16 = createItem(16)
+const Item17 = createItem(17)
+const Item18 = createItem(18)
+const Item19 = createItem(19)
+const Item20 = createItem(20)
+const Item21 = createItem(21)
+const Item22 = createItem(22)
+const Item23 = createItem(23)
 
 export {
   googleIcon,
@@ -108,6 +121,11 @@ export {
   Cloth9,
   Cloth10,
   Cloth11,
+  Cloth12,
+  Cloth13,
+  Cloth14,
+  Cloth15,
+  Cloth16,
   Item1,
   Item2,
   Item3,
@@ -123,4 +141,12 @@ export {
   Item13,
   Item14,
   Item15,
+  Item16,
+  Item17,
+  Item18,
+  Item19,
+  Item20,
+  Item21,
+  Item22,
+  Item23,
 }

@@ -1,6 +1,7 @@
 import { authComponent } from '../auth'
 import { mutation, query } from '../_generated/server'
 import { v } from 'convex/values'
+import { paginationOptsValidator } from 'convex/server'
 
 /**
  * Creates a new download history entry for the current user.
@@ -96,5 +97,27 @@ export const getDownloadHistory = query({
       .withIndex('userId_downloadedAt', (q) => q.eq('userId', userId))
       .order('desc')
       .collect()
+  },
+})
+
+/**
+ * Pagination
+ */
+export const getPaginatedDownloadHistory = query({
+  args: {
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    const user = await authComponent.safeGetAuthUser(ctx)
+    if (!user) {
+      throw new Error('Unauthorized: You must logged in to view history.')
+    }
+    const userId = user.userId || user._id
+
+    return await ctx.db
+      .query('downloadHistory')
+      .withIndex('userId_downloadedAt', (q) => q.eq('userId', userId))
+      .order('desc')
+      .paginate(args.paginationOpts)
   },
 })

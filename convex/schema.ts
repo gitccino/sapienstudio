@@ -19,4 +19,12 @@ export default defineSchema({
   })
     .index('userId', ['userId'])
     .index('userId_downloadedAt', ['userId', 'downloadedAt']),
+  purchaseHistory: defineTable({
+    userId: v.string(),
+    stripeSessionId: v.string(), // cs_test_... For seaching in Stripe Dashboard
+    stripePaymentIntentId: v.optional(v.string()), // pi_test_... Refunding purpose, Stripe requires the Payment Intent ID
+    amountPaid: v.number(),
+    creditsAdded: v.number(),
+    purchasedAt: v.number(),
+  }).index('userId', ['userId']),
 })

@@ -1,6 +1,6 @@
 'use client'
 
-import { Preloaded, usePreloadedQuery } from 'convex/react'
+import { Preloaded, useAction, usePreloadedQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { AiImageIcon, Wallet01Icon } from '@hugeicons/core-free-icons'
@@ -17,19 +17,22 @@ import {
 } from '@/components/ui/dialog'
 import { useState, useCallback, memo } from 'react'
 import { Button } from './ui/button'
+import { CREDIT_OPTIONS } from '@/constants/billing'
+import { fireConfetti } from '@/lib/confetti'
+import CreditDaily from '@/components/credit-daily'
 
 // ⚡ Lazy Load Non-Critical UI: Modals are perfect for deferring component load
-const CreditDaily = dynamic(() => import('@/components/credit-daily'), {
-  loading: () => (
-    <div className="bg-card-background h-24 w-full animate-pulse rounded-lg" />
-  ),
-})
+// const CreditDaily = dynamic(() => import('@/components/credit-daily'), {
+//   loading: () => (
+//     <div className="bg-card-background h-24 w-full animate-pulse rounded-lg" />
+//   ),
+// })
 
-const CREDIT_OPTIONS = [
-  { credit: 5, price: 1 },
-  { credit: 20, price: 3 },
-  { credit: 40, price: 5 },
-].map((option, id) => ({ id, ...option }))
+// const CREDIT_OPTIONS = [
+//   { credit: 5, price: 1 },
+//   { credit: 20, price: 3 },
+//   { credit: 40, price: 5 },
+// ].map((option, id) => ({ id, ...option }))
 
 // ⚡ Shift Burden to the Server: Next.js + Convex preloaded queries handles data hydration effortlessly
 export function CreditDisplay({
@@ -69,9 +72,15 @@ export function CreditDisplay({
                 strokeWidth={1.5}
                 className="size-5"
               />
-              <span>{balance === 0 ? 'No' : balance} Credits</span>
-              <CreditGift className="ml-auto" />
-              <CreditGift amount={-1} />
+              <span className="font-semibold">
+                {balance === -1
+                  ? 'Empty Wallet'
+                  : balance === 0
+                    ? `No Credit`
+                    : `${balance} Credits`}
+              </span>
+              {/* <CreditGift className="ml-auto" />
+              <CreditGift amount={-1} /> */}
             </div>
 
             <BuyCreditsSection />
@@ -91,6 +100,24 @@ const BuyCreditsSection = memo(function BuyCreditsSection() {
   const [selectedCreditOption, setSelectedCreditOption] = useState(
     CREDIT_OPTIONS[0],
   )
+  const payWithStripe = useAction(api.payments.stripe.createCheckoutSession)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleCheckout = async () => {
+    setIsLoading(true)
+    try {
+      const checkoutUrl = await payWithStripe({
+        creditOptionId: selectedCreditOption.id,
+      })
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl
+      }
+    } catch (error) {
+      console.error('Failed to create checkout session:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <>
@@ -101,7 +128,9 @@ const BuyCreditsSection = memo(function BuyCreditsSection() {
       <Button
         variant="ghost"
         size="opticalCenter"
-        className="bg-surface-beige text-background font-semibold"
+        className="bg-foreground text-background font-semibold"
+        disabled={isLoading}
+        onClick={handleCheckout}
       >
         Buy {selectedCreditOption.credit} credits
       </Button>
@@ -164,16 +193,16 @@ const BuyCreditOptionItem = memo(function BuyCreditOptionItem({
       )}
       onClick={handleClick}
     >
-      <div className="flex-row-center text-reward gap-1 text-sm font-semibold">
+      <div className="flex-row-center text-reward gap-1 text-sm font-bold">
         <HugeiconsIcon icon={AiImageIcon} className="size-4" strokeWidth={2} />
         <span>{credit}</span>
       </div>
-      <span>
-        ${price}{' '}
-        <span className="text-muted-foreground text-xs">
-          ({price / credit})
+      <div className="flex-col-center">
+        <span>${price}</span>
+        <span className="text-muted-foreground text-[0.6rem] font-medium">
+          ${price / credit} per credit
         </span>
-      </span>
+      </div>
     </div>
   )
 })
