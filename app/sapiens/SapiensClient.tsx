@@ -42,8 +42,8 @@ import {
 import Image from 'next/image'
 import { SapiensItems } from '@/components/sapiens-items'
 import {
-  clothOptions,
-  headOptions,
+  // clothOptions,
+  // headOptions,
   DIST_DOMAIN,
   RESOLUTION_PRESETS,
   MIN_RESOLUTION,
@@ -55,6 +55,7 @@ import {
   MENU_OPTIONS,
   COLOR_CONFIG,
 } from '@/constants'
+import { clothOptions, headOptions } from '@/constants/sapiens'
 import type { ClothKey, HeadKey, ItemKey, Menu } from '@/constants'
 import { useThemeStore, useSapiensStore } from '@/lib/store'
 import { generateResourceName, type AvatarConfig } from '@/lib/sapiens-resource'
@@ -78,10 +79,14 @@ export const SELECTED_COLOR_DARK_INIT: SelectedColors = {
   cloth: '#30302E',
   head: '#30302E',
 }
+const COLLECTION_ID = 'sapiens'
+// const COLLECTION_ID = 'vegetr'
+// const CREDITS_PER_DOWNLOAD = COLLECTIONS[COLLECTION_ID].creditsPerDownload
+const CREDITS_PER_DOWNLOAD = 1
 
 // --- Memoized subcomponents ---
 
-const DownloadPopover = memo(function DownloadPopover({
+export const DownloadPopover = memo(function DownloadPopover({
   avatarRef,
   preloadedBalance,
   avatarConfig,
@@ -100,7 +105,7 @@ const DownloadPopover = memo(function DownloadPopover({
     api.functions.downloads.purchaseAndRecordDownload,
   )
 
-  const isInsufficient = balance < 1
+  const isInsufficient = balance < CREDITS_PER_DOWNLOAD
 
   const handleDownload = useCallback(async () => {
     if (!avatarRef.current) return
@@ -191,7 +196,7 @@ const DownloadPopover = memo(function DownloadPopover({
       // Pre-record and charge the download amount
       await purchaseAndRecordDownload({
         resourceName: generateResourceName(avatarConfig),
-        cost: 1,
+        cost: CREDITS_PER_DOWNLOAD,
       })
 
       // Fallback: open generated image (desktop: new tab, iOS: same tab)
@@ -259,7 +264,7 @@ const DownloadPopover = memo(function DownloadPopover({
             </span>
             <span className="col-span-2">Credits/Download</span>
             <span className="text-destructive col-span-1 text-right font-semibold">
-              -1
+              -{CREDITS_PER_DOWNLOAD}
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -287,12 +292,12 @@ const DownloadPopover = memo(function DownloadPopover({
             type="button"
             size="none"
             onClick={handleDownload}
-            disabled={isDownloading || balance < 1}
+            disabled={isDownloading || isInsufficient}
             className="bg-foreground/95 w-full rounded-md py-1 text-base dark:font-semibold"
           >
             {isDownloading
               ? 'Downloading...'
-              : balance < 1
+              : isInsufficient
                 ? 'Insufficient Credits'
                 : 'Download'}
           </Button>
@@ -390,6 +395,15 @@ const CategoryTabs = memo(function CategoryTabs({
   selectedCategory: Menu | 'settings'
   onSelect: (key: Menu) => void
 }) {
+  // const menuOptions = useMemo(
+  //   () => ({
+  //     ...Object.fromEntries(
+  //       COLLECTIONS[COLLECTION_ID].traits.map(({ id, label }) => [id, label]),
+  //     ),
+  //     colors: 'Colors',
+  //   }),
+  //   [],
+  // )
   return (
     <div className="flex-row-center h-12 w-full gap-2">
       {(Object.keys(MENU_OPTIONS) as Menu[]).map((key) => (
@@ -557,7 +571,9 @@ export default function SapiensClient({
   const avatarRef = useRef<HTMLDivElement>(null)
 
   const ClothComponent = clothOptions[selectedCloth]
+  // const ClothComponent = COLLECTION_TRAITS[COLLECTION_ID].cloth[selectedCloth]
   const HeadComponent = headOptions[selectedHead]
+  // const HeadComponent = COLLECTION_TRAITS[COLLECTION_ID].head[selectedHead]
 
   const [isPending, startTransition] = useTransition()
 
@@ -575,11 +591,6 @@ export default function SapiensClient({
   const handleToggleTheme = useCallback(() => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark'
     setTheme(nextTheme)
-    // setSelectedColor(
-    //   nextTheme === 'dark'
-    //     ? SELECTED_COLOR_DARK_INIT
-    //     : SELECTED_COLOR_LIGHT_INIT,
-    // )
   }, [setTheme, theme])
 
   const handleSelectColor = useCallback(
@@ -701,7 +712,7 @@ export default function SapiensClient({
           )}
           <Image
             key={selectedItem}
-            src={`https://${DIST_DOMAIN}/items/${selectedItem}.svg`}
+            src={`https://${DIST_DOMAIN}/${COLLECTION_ID}/items/${selectedItem}.svg`}
             alt="Item"
             width={500}
             height={500}
@@ -745,6 +756,15 @@ export default function SapiensClient({
           </div>
         )}
 
+        {/* <TraitsGrid
+          traitMap={COLLECTION_TRAITS[COLLECTION_ID].cloth}
+          color={selectedColor[selectedCategory]}
+          selectedKey={
+            selectedCategory === 'cloth' ? selectedCloth : selectedHead
+          }
+          onSelect={handleSelectTrait}
+        /> */}
+
         {(selectedCategory === 'cloth' || selectedCategory === 'head') && (
           <SapiensTraits
             category={selectedCategory}
@@ -773,3 +793,52 @@ export default function SapiensClient({
     </motion.main>
   )
 }
+
+// type GenericTraitKey = string
+// type GenericTraitsProps = {
+//   traitMap: Record<
+//     string,
+//     React.ComponentType<{ color: string; className?: string }>
+//   >
+//   color: string
+//   selectedKey: string
+//   onSelect: (key: GenericTraitKey) => void
+// }
+
+// const TraitsGrid = memo(function TraitsGrid({
+//   traitMap,
+//   color,
+//   selectedKey,
+//   onSelect,
+// }: GenericTraitsProps) {
+//   const keys = useMemo(
+//     () => Object.keys(traitMap) as GenericTraitKey[],
+//     [traitMap],
+//   )
+//   return (
+//     <div className="grid w-full grid-cols-3 gap-2">
+//       {keys.map((key) => {
+//         const Icon = traitMap[key]
+//         return (
+//           <Button
+//             key={key}
+//             type="button"
+//             size="none"
+//             variant="default"
+//             onClick={() => onSelect(key)}
+//             className={`border-background text-foreground relative aspect-square w-full overflow-hidden rounded-xl border-2 bg-transparent p-0 duration-0 ${
+//               selectedKey === key ? 'border-foreground/10' : ''
+//             }`}
+//           >
+//             {Icon && (
+//               <Icon
+//                 color={color}
+//                 className="bt size-full min-w-0 shrink-0 scale-125"
+//               />
+//             )}
+//           </Button>
+//         )
+//       })}
+//     </div>
+//   )
+// })

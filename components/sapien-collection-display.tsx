@@ -2,15 +2,13 @@
 
 import { Body } from '@/assets'
 import {
-  clothOptions,
   DIST_DOMAIN,
-  headOptions,
-  itemOptions,
   SWATCH_OPTIONS,
   type ClothKey,
   type HeadKey,
   type ItemKey,
 } from '@/constants'
+import { clothOptions, headOptions, itemOptions } from '@/constants/sapiens'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { forwardRef, useEffect, useState } from 'react'
@@ -103,7 +101,7 @@ export default forwardRef(function SapiensCollectionDisplay(
           )}
           <Image
             key={selectedItem}
-            src={`https://${DIST_DOMAIN}/items/${selectedItem}.svg`}
+            src={`https://${DIST_DOMAIN}/sapiens/items/${selectedItem}.svg`}
             alt="Item"
             width={500}
             height={500}

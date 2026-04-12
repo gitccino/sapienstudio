@@ -10,6 +10,7 @@
     "postinstall": "sed -i.bak 's/mutableHeaders.delete(\"transfer-encoding\");/mutableHeaders.delete(\"transfer-encoding\");mutableHeaders.delete(\"host\");mutableHeaders.delete(\"x-forwarded-host\");/g' node_modules/@convex-dev/better-auth/dist/nextjs/index.js"
   },
   "dependencies": {
+    "@convex-dev/aggregate": "^0.2.1",
     "@convex-dev/better-auth": "^0.10.11",
     "@hugeicons/core-free-icons": "^3.1.1",
     "@hugeicons/react": "^1.1.5",

@@ -1,25 +1,37 @@
 import googleIcon from './logos/g.webp'
 import appleIcon from './logos/a.svg'
 import githubIcon from './logos/git.svg'
+import nullAsset from './null.svg'
+import Body from './sapiens/body.svg'
+import VegetrBody from './vegetr/body.svg'
+import VegetrHideBody from './vegetr-hide/blank.png'
+import SapiensBanner from './sapiens/banner.png'
+import VegetrBanner from './vegetr/banner.png'
+import VegetrHideBanner from './vegetr-hide/banner.png'
+import RegisterArt from './register.png'
 
-import Body from '@/assets/sapiens/body.svg'
 import {
   createRemoteSvg,
   createRemoteSvgWithoutInherit,
+  RemoteSvgProps,
 } from '@/components/remote-svg'
+import { JSX } from 'react'
 
 const DIST_DOMAIN = process.env.NEXT_PUBLIC_DIST_DOMAIN_NAME ?? ''
+
 const createCloth = (n: number) =>
   DIST_DOMAIN
-    ? createRemoteSvg(`https://${DIST_DOMAIN}/clothes/cloth${n}.svg`)
+    ? createRemoteSvg(`https://${DIST_DOMAIN}/sapiens/clothes/cloth${n}.svg`)
     : null
 const createHead = (n: number) =>
   DIST_DOMAIN
-    ? createRemoteSvg(`https://${DIST_DOMAIN}/heads/head${n}.svg`)
+    ? createRemoteSvg(`https://${DIST_DOMAIN}/sapiens/heads/head${n}.svg`)
     : null
 const createItem = (n: number) =>
   DIST_DOMAIN
-    ? createRemoteSvgWithoutInherit(`https://${DIST_DOMAIN}/items/item${n}.svg`)
+    ? createRemoteSvgWithoutInherit(
+        `https://${DIST_DOMAIN}/sapiens/items/item${n}.svg`,
+      )
     : null
 
 const Cloth1 = createCloth(1)
@@ -61,7 +73,6 @@ const Head19 = createHead(19)
 const Head20 = createHead(20)
 
 const Item1 = createItem(1)
-// import Item1 from `https://${DIST_DOMAIN}/items/item1.svg`
 const Item2 = createItem(2)
 const Item3 = createItem(3)
 const Item4 = createItem(4)
@@ -89,7 +100,13 @@ export {
   googleIcon,
   appleIcon,
   githubIcon,
+  RegisterArt,
   Body,
+  VegetrBody,
+  VegetrHideBody,
+  SapiensBanner,
+  VegetrBanner,
+  VegetrHideBanner,
   Head1,
   Head2,
   Head3,

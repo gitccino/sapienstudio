@@ -11,7 +11,13 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    remotePatterns: [new URL(`https://${DIST_DOMAIN_NAME}/**`)],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: DIST_DOMAIN_NAME,
+        pathname: '/**',
+      },
+    ],
   },
   // allowedDevOrigins: ['local-origin.dev', '*.local-origin.dev'],
 }

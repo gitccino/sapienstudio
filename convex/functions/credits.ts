@@ -1,6 +1,7 @@
 import { v } from 'convex/values'
 import { internalMutation, mutation, query } from '../_generated/server'
 import { authComponent } from '../auth'
+import { purchaseCountAggregate } from './purchase'
 
 // --- Schema ---
 // userCredits: defineTable({
@@ -13,9 +14,12 @@ export const getBalance = query({
   args: {},
   handler: async (ctx) => {
     const user = await authComponent.safeGetAuthUser(ctx)
-    if (!user) {
-      throw new Error('Unauthorized: You must logged in to get credits.')
-    }
+    // Return null during the unauthenticated window — Convex will re-run once
+    // auth resolves. Throwing here causes a spurious error on every page load.
+    // if (!user) {
+    //   throw new Error('Unauthorized: You must logged in to get credits.')
+    // }
+    if (!user) return null
     const userId = user.userId || user._id
     const wallet = await ctx.db
       .query('userCredits')
@@ -121,7 +125,7 @@ export const fulfillPurchase = internalMutation({
       })
     }
 
-    await ctx.db.insert('purchaseHistory', {
+    const id = await ctx.db.insert('purchaseHistory', {
       userId: args.userId,
       creditsAdded: args.amount,
       amountPaid: args.amountPaid,
@@ -129,6 +133,8 @@ export const fulfillPurchase = internalMutation({
       stripePaymentIntentId: args.stripePaymentIntentId,
       purchasedAt: now,
     })
+    const doc = await ctx.db.get(id)
+    await purchaseCountAggregate.insertIfDoesNotExist(ctx, doc!)
   },
 })
 
@@ -224,11 +230,7 @@ export const getDailyClaimStatus = query({
   args: {},
   handler: async (ctx) => {
     const user = await authComponent.safeGetAuthUser(ctx)
-    if (!user) {
-      throw new Error(
-        'Unauthorized: You must logged in to get daily claim status',
-      )
-    }
+    if (!user) return null
 
     const userId = user.userId || user._id
     const wallet = await ctx.db

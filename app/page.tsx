@@ -29,7 +29,7 @@ export default function Home() {
 
   const handleNavigate = () => {
     startTransition(() => {
-      router.push('/register')
+      router.push('/collections')
     })
   }
 

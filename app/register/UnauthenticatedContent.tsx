@@ -16,8 +16,10 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { BUTTON_ARROW_ANIMATE, BUTTON_ARROW_TRANSITION } from '@/constants'
+import Image from 'next/image'
+import { RegisterArt } from '@/assets'
 
-const DEV_DEFAULTS = { email: 's@s.com', password: 'password' }
+const DEV_DEFAULTS = { email: '', password: '' }
 
 const FORM_ANIMATE_DISTANCE = 10
 const FORM_ANIMATE_TRANSITION = { duration: 0.3, ease: 'easeOut' as const }
@@ -91,19 +93,9 @@ const SubmitButton = memo(function SubmitButton({
       size="none"
       variant="defaultPrimary"
       disabled={isLoading}
-      className="font-semibold"
+      className="bg-card-background-lv2 text-foreground h-12 rounded-xl text-base font-semibold"
     >
       <span>{isLoading ? loadingLabel : label}</span>
-      {/* <motion.span
-        animate={BUTTON_ARROW_ANIMATE}
-        transition={BUTTON_ARROW_TRANSITION}
-      >
-        <HugeiconsIcon
-          icon={ArrowRight02Icon}
-          className="size-4"
-          strokeWidth={2}
-        />
-      </motion.span> */}
     </Button>
   )
 })
@@ -176,7 +168,7 @@ const LoginForm = memo(function LoginForm() {
           console.error('Sign in error:', error)
         }
         await new Promise((resolve) => setTimeout(resolve, 2000))
-        if (data) router.push('/sapiens')
+        if (data) router.push('/collections')
       } finally {
         setIsLoading(false)
       }
@@ -263,7 +255,7 @@ const SignupForm = memo(function SignupForm() {
           console.error('Sign up error:', error)
         }
         await new Promise((resolve) => setTimeout(resolve, 2000))
-        if (data) router.push('/sapiens')
+        if (data) router.push('/collections')
       } finally {
         setIsLoading(false)
       }
@@ -336,7 +328,14 @@ export default function UnauthenticatedContent() {
   const switchToSignup = useCallback(() => setIsLogin(false), [])
 
   return (
-    <motion.div className="flex-col-center relative w-full gap-3 px-4">
+    <motion.div className="flex-col-start md:flex-col-center relative flex w-full flex-1 gap-3 px-4">
+      <Image
+        src={RegisterArt}
+        alt="Register page artwork"
+        width={500}
+        height={500}
+        className="w-[60%]"
+      />
       <TabSwitcher
         isLogin={isLogin}
         onSwitchToLogin={switchToLogin}

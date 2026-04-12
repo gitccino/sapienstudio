@@ -21,7 +21,7 @@ function InputIcon({
         icon={icon}
         size={16}
         strokeWidth={2}
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/20"
+        className="text-muted-foreground absolute top-1/2 right-4 -translate-y-1/2"
       />
     </div>
   )

@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
-import { isAuthenticated, preloadAuthQuery } from '@/lib/auth-server'
-import { api } from '@/convex/_generated/api'
+import { isAuthenticated } from '@/lib/auth-server'
 import HistoryClient from './HistoryClient'
 
 export default async function SapiensHistory() {
@@ -13,16 +12,5 @@ export default async function SapiensHistory() {
 
   if (!authed) redirect('/register')
 
-  let preloadedHistory
-  try {
-    preloadedHistory = await preloadAuthQuery(
-      api.functions.downloads.getDownloadHistory,
-    )
-  } catch {
-    // Fall through to client-side auth check in HistoryClient
-  }
-
-  return preloadedHistory ? (
-    <HistoryClient preloadedHistory={preloadedHistory} />
-  ) : null
+  return <HistoryClient />
 }

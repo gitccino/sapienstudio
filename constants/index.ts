@@ -39,77 +39,8 @@ import {
 } from '@/assets'
 import { ColorCategory, SwatchOptions } from '@/types'
 
-const clothOptions = {
-  cloth1: Cloth1,
-  cloth2: Cloth2,
-  cloth3: Cloth3,
-  cloth4: Cloth4,
-  cloth5: Cloth5,
-  cloth6: Cloth6,
-  cloth7: Cloth7,
-  cloth8: Cloth8,
-  cloth9: Cloth9,
-  cloth10: Cloth10,
-  cloth11: Cloth11,
-  cloth12: Cloth12,
-  cloth13: Cloth13,
-  cloth14: Cloth14,
-  cloth15: Cloth15,
-  cloth16: Cloth16,
-} as const
-type ClothKey = keyof typeof clothOptions
-
-const headOptions = {
-  head1: Head1,
-  head2: Head2,
-  head3: Head3,
-  head4: Head4,
-  head5: Head5,
-  head6: Head6,
-  head7: Head7,
-  head8: Head8,
-  head9: Head9,
-  head10: Head10,
-  head11: Head11,
-  head12: Head12,
-  head13: Head13,
-  head14: Head14,
-  head15: Head15,
-  head16: Head16,
-  head17: Head17,
-  head18: Head18,
-  head19: Head19,
-  head20: Head20,
-} as const
-type HeadKey = keyof typeof headOptions
-
-const itemOptions = {
-  item1: 'item1',
-  item2: 'item2',
-  item3: 'item3',
-  item4: 'item4',
-  item5: 'item5',
-  item6: 'item6',
-  item7: 'item7',
-  item8: 'item8',
-  item9: 'item9',
-  item10: 'item10',
-  item11: 'item11',
-  item12: 'item12',
-  item13: 'item13',
-  item14: 'item14',
-  item15: 'item15',
-  item16: 'item16',
-  item17: 'item17',
-  item18: 'item18',
-  item19: 'item19',
-  item20: 'item20',
-  item21: 'item21',
-  item22: 'item22',
-  item23: 'item23',
-}
-type ItemKey = keyof typeof itemOptions
-
+// Query string indicate version parameter
+const VERSION = '?v=1773686901'
 const DIST_DOMAIN = process.env.NEXT_PUBLIC_DIST_DOMAIN_NAME!
 const RESOLUTION_PRESETS = [256, 512, 1024, 2048] as const
 const MIN_RESOLUTION = 64
@@ -209,36 +140,38 @@ const HEAD_CLOTH_SWATCH = [
   '#846F61',
   '#5F4D42',
 ]
+const SAPIENS_BACKGROUND_SWATCHES = [
+  '#fafaf9',
+  '#ebebe6',
+  '#C3C3C3',
+  '#949494',
+  '#545454',
+  '#30302E',
+  '#e4d3b7',
+  '#99BAC3',
+  '#6b8ba6',
+  '#9FA8A1',
+  '#465a54',
+  '#266672',
+  '#8E8595',
+  '#b69d74',
+  '#B3615F',
+]
+const SAPIENS_BODY_SWATCHES = [
+  '#fafaf9',
+  '#f4d6be',
+  '#f3c9b1',
+  '#e6bc98',
+  '#C08261',
+  '#9C6452',
+  '#292927',
+]
 
-const SWATCH_OPTIONS: SwatchOptions = {
-  background: [
-    '#fafaf9',
-    '#ebebe6',
-    '#C3C3C3',
-    '#949494',
-    '#545454',
-    '#30302E',
-    '#e4d3b7',
-    '#99BAC3',
-    '#6b8ba6',
-    '#9FA8A1',
-    '#465a54',
-    '#266672',
-    '#8E8595',
-    '#b69d74',
-    '#B3615F',
-  ],
-  body: [
-    '#fafaf9',
-    '#f4d6be',
-    '#f3c9b1',
-    '#e6bc98',
-    '#C08261',
-    '#9C6452',
-    // '#292927',
-  ],
-  head: HEAD_CLOTH_SWATCH,
+const SWATCH_OPTIONS = {
+  background: SAPIENS_BACKGROUND_SWATCHES,
+  body: SAPIENS_BODY_SWATCHES,
   cloth: HEAD_CLOTH_SWATCH,
+  head: HEAD_CLOTH_SWATCH,
 }
 const COLOR_CONFIG: { category: ColorCategory; label: string }[] = [
   { category: 'background', label: 'Background' },
@@ -247,10 +180,51 @@ const COLOR_CONFIG: { category: ColorCategory; label: string }[] = [
   { category: 'cloth', label: 'Clothes' },
 ]
 
+// Vegetr
+const VEGETR_BODY_SWATCHES = [
+  '#e26847',
+  '#d46350',
+  '#9b644e',
+  '#d8a159',
+  '#849962',
+  '#455A55',
+  '#8E8595',
+  '#F19A9A',
+  '#a06e9c',
+  '#ddc6ba',
+  '#5F4D42',
+  '#d6854d',
+  '#f27f4c',
+  '#FFD7BF',
+  '#292928',
+]
+const VEGETR_CLOTH_SWATCH = [
+  '#FAFAF9',
+  '#5F4D42',
+  '#3e3432',
+  '#30302E',
+  '#B3615F',
+  '#d46350',
+  '#6B8BA6',
+  '#36546D',
+  '#F19A9B',
+  '#D8A059',
+  '#849962',
+  '#455A55',
+  '#228998',
+  '#A78EC7',
+  '#E3D2D4',
+]
+
+const VEGETR_SWATCH_OPTIONS = {
+  background: SAPIENS_BACKGROUND_SWATCHES,
+  body: VEGETR_BODY_SWATCHES,
+  cloth: VEGETR_CLOTH_SWATCH,
+  eyes: VEGETR_CLOTH_SWATCH,
+}
+
 export {
-  clothOptions,
-  headOptions,
-  itemOptions,
+  VERSION,
   DIST_DOMAIN,
   RESOLUTION_PRESETS,
   MIN_RESOLUTION,
@@ -263,8 +237,9 @@ export {
   CATEGORY_TAB_VARIANTS,
   CATEGORY_TAB_TRANSITION,
   SWATCH_OPTIONS,
+  VEGETR_SWATCH_OPTIONS,
   MENU_OPTIONS,
   COLOR_CONFIG,
   LOADING_VARIANTS,
 }
-export type { ClothKey, HeadKey, ItemKey, Menu }
+export type { Menu }

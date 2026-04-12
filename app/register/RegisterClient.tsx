@@ -3,13 +3,16 @@
 import { memo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { redirect } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 import { Unauthenticated } from 'convex/react'
 import { motion, type Variants } from 'motion/react'
 import { CONTAINER_VARIANTS, STAGGER_CONTAINER } from '@/constants'
 import UnauthenticatedContent from './UnauthenticatedContent'
+import { Button } from '@/components/ui/button'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { ArrowLeft01Icon } from '@hugeicons/core-free-icons'
 
 // const UnauthenticatedContent = dynamic(
 //   () => import('./UnauthenticatedContent'),
@@ -73,6 +76,7 @@ export const LoadingSquares = memo(function LoadingSquares({
 })
 
 export default function RegisterClient() {
+  const router = useRouter()
   const { data, isPending } = authClient.useSession()
 
   if (isPending)
@@ -83,7 +87,7 @@ export default function RegisterClient() {
     )
 
   if (data) {
-    redirect('/sapiens')
+    redirect('/collections')
   }
 
   return (
@@ -91,22 +95,29 @@ export default function RegisterClient() {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="main-container flex-col-center gap-10 px-[5%] pt-4 md:px-0 md:py-0"
+      className="main-container relative flex flex-col justify-between gap-10 px-[5%] py-8 md:px-0"
     >
-      <motion.div variants={CONTAINER_VARIANTS as Variants}>
-        <Link href="/">
-          <h1 className="text-7xl font-black md:text-8xl">SAPIENS</h1>
-        </Link>
+      <motion.div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="none"
+          className="bg-card-background mr-auto h-12 cursor-pointer gap-1 rounded-xl pr-4 pl-3 text-base"
+          onClick={() => router.back()}
+        >
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            className={`size-5`}
+            strokeWidth={2}
+          />
+          <span>{isPending ? 'Loading...' : 'Back'}</span>
+        </Button>
       </motion.div>
 
-      {/* <motion.div
+      <motion.div
         variants={CONTAINER_VARIANTS as Variants}
-        className="relative aspect-square w-full overflow-hidden"
+        className="flex flex-1"
       >
-        <Image src="/artwork.svg" alt="Artwork" width={1000} height={1000} />
-      </motion.div> */}
-
-      <motion.div variants={CONTAINER_VARIANTS as Variants} className="w-full">
         <Unauthenticated>
           <UnauthenticatedContent />
         </Unauthenticated>

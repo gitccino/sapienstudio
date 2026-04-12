@@ -74,7 +74,7 @@ export default function CreditDaily({ userBalance }: CreditDailyProps) {
       <Button
         variant="ghost"
         size="none"
-        className="flex-row-start text-background bg-reward h-10 w-full gap-2 rounded-lg px-3 font-semibold"
+        className="flex-row-start text-foreground dark:text-background bg-reward h-12 w-full gap-2 rounded-lg px-4 text-base font-semibold"
         onClick={handleClaimDailyReward}
         disabled={isPending || !canClaim}
       >

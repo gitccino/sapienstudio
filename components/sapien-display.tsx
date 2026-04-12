@@ -1,10 +1,6 @@
 import { Body } from '@/assets'
-import {
-  clothOptions,
-  DIST_DOMAIN,
-  headOptions,
-  itemOptions,
-} from '@/constants'
+import { DIST_DOMAIN } from '@/constants'
+import { clothOptions, headOptions } from '@/constants/sapiens'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import type { AvatarConfig } from '@/lib/sapiens-resource'
@@ -49,7 +45,7 @@ export default forwardRef(function SapiensDisplay(
       )}
       <Image
         key={selectedItem}
-        src={`https://${DIST_DOMAIN}/items/${selectedItem}.svg`}
+        src={`https://${DIST_DOMAIN}/sapiens/items/${selectedItem}.svg`}
         alt="Item"
         width={500}
         height={500}

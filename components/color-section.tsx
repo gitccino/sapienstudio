@@ -28,11 +28,12 @@ type ColorSectionProps = {
   label: string
   colorOptions: string[]
   value: string
-  onSelectColorAction: (
-    color: string,
-    opacity: number,
-    category: ColorCategory,
-  ) => void
+  // onSelectColorAction: (
+  //   color: string,
+  //   opacity: number,
+  //   category: ColorCategory,
+  // ) => void
+  onSelectColorAction: any
 }
 
 export const ColorSection = memo(function ColorSection({
@@ -50,8 +51,8 @@ export const ColorSection = memo(function ColorSection({
         label={label}
         onChangeAction={onSelectColorAction}
       />
-      <div className="no-scrollbar w-full min-w-0 overflow-x-auto overflow-y-hidden">
-        <div className="flex w-full flex-row flex-wrap justify-start gap-1.5 px-0.5 py-1.5 md:justify-center">
+      <div className="w-full min-w-0 overflow-x-auto overflow-y-hidden">
+        <div className="grid w-full grid-cols-8 justify-items-center gap-1.5 px-0.5 py-1.5">
           <motion.div
             key={`${category}-transparent`}
             variants={colorVariants}
@@ -63,7 +64,7 @@ export const ColorSection = memo(function ColorSection({
               variant="ghost"
               onClick={() => onSelectColorAction('#000000', 0, category)}
               className={cn(
-                'border-foreground/10 h-fit overflow-hidden rounded-sm border-2',
+                'border-border h-fit overflow-hidden rounded-sm border-0',
               )}
             >
               <div
@@ -88,7 +89,7 @@ export const ColorSection = memo(function ColorSection({
                 variant="ghost"
                 onClick={() => onSelectColorAction(color, 100, category)}
                 className={cn(
-                  'border-foreground/10 overflow-hidden rounded-sm border-2',
+                  'border-border overflow-hidden rounded-sm border-0',
                 )}
               >
                 <div

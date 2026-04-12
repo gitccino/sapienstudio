@@ -12,7 +12,7 @@ import {
   AiImageIcon,
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { usePaginatedQuery } from 'convex/react'
+import { usePaginatedQuery, useQuery } from 'convex/react'
 import { FunctionReturnType } from 'convex/server'
 import { formatDistanceToNow, format } from 'date-fns'
 import { motion } from 'motion/react'
@@ -30,6 +30,7 @@ export default function PurchaseHistoryClient() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
+  const totalCount = useQuery(api.functions.purchase.getPurchaseHistoryCount)
   const { results, status, loadMore } = usePaginatedQuery(
     api.functions.purchase.getPaginatedPurchaseHistory,
     {},
@@ -50,7 +51,7 @@ export default function PurchaseHistoryClient() {
     >
       <motion.div className="flex-row-start mb-10 w-full gap-6">
         <button
-          onClick={() => startTransition(() => router.push('/sapiens'))}
+          onClick={() => startTransition(() => router.back())}
           disabled={isPending}
           className="flex-row-center bg-card-background h-10 gap-1 rounded-xl pr-3 pl-2 font-medium transition-opacity disabled:opacity-70"
         >
@@ -75,16 +76,20 @@ export default function PurchaseHistoryClient() {
           />
         </ul>
       ))}
-      {status === 'CanLoadMore' && (
-        <Button
-          variant="ghost"
-          size="opticalCenter"
-          onClick={() => loadMore(PAGINATION_NUMITEMS)}
-          className="w-full cursor-pointer underline"
-        >
-          Load more
-        </Button>
-      )}
+      {(status === 'CanLoadMore' || status === 'LoadingMore') &&
+        results.length < (totalCount ?? Infinity) && (
+          <Button
+            variant="ghost"
+            size="opticalCenter"
+            onClick={() => loadMore(PAGINATION_NUMITEMS)}
+            className={cn(
+              'text-muted-foreground w-full cursor-pointer',
+              status === 'CanLoadMore' && 'underline',
+            )}
+          >
+            {status === 'LoadingMore' ? 'Loading...' : 'Load more'}
+          </Button>
+        )}
     </motion.main>
   )
 }
@@ -105,7 +110,7 @@ export const PurchaseHistoryComponent = memo(function PurchaseHistoryComponent({
   return (
     <li className="flex w-full flex-row items-stretch gap-2">
       <div className="relative mr-2 flex flex-col items-center">
-        <div className="bg-background border-card-background absolute top-2.5 h-3 w-3 -translate-y-1/2 rounded-full border-2" />
+        <div className="bg-background border-border absolute top-2.5 h-3 w-3 -translate-y-1/2 rounded-full border-2" />
         <div
           className={cn(
             'w-[2px] flex-1',
@@ -133,10 +138,10 @@ export const PurchaseHistoryComponent = memo(function PurchaseHistoryComponent({
         </div>
 
         <div className="bg-card-background my-2 flex h-fit w-full flex-row items-center justify-start gap-3 rounded-xl p-3">
-          <div className="bg-reward/70 rounded-lg p-2">
+          <div className="bg-card-background-lv2 rounded-lg p-3">
             <HugeiconsIcon
               icon={AiImageIcon}
-              className="size-6"
+              className="text-muted-foreground size-4"
               strokeWidth={2}
             />
           </div>
@@ -144,11 +149,11 @@ export const PurchaseHistoryComponent = memo(function PurchaseHistoryComponent({
             <span className="font-medium">
               Purchase {historyEntry.creditsAdded} credits
             </span>
-            <span className="text-muted-foreground text-sm">
+            <span className="text-muted-foreground text-xs">
               {format(historyEntry.purchasedAt, 'h:mm a')}
             </span>
           </div>
-          <div className="mr-3 ml-auto text-lg font-bold">
+          <div className="mr-3 ml-auto text-lg font-semibold">
             ${historyEntry.amountPaid.toFixed(2)}
           </div>
         </div>

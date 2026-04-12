@@ -2,7 +2,7 @@ import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
-import { itemOptions } from '@/constants'
+import { itemOptions } from '@/constants/sapiens'
 import type { ItemKey } from '@/constants'
 
 type SapiensItemsProps = {
@@ -33,7 +33,7 @@ export const SapiensItems = memo(function SapiensItems({
           <Image
             width={500}
             height={500}
-            src={`https://${DIST_DOMAIN}/items/${itemKey}.svg`}
+            src={`https://${DIST_DOMAIN}/sapiens/items/${itemKey}.svg`}
             alt={`${itemKey} Display`}
             className="size-full translate-y-1/2 scale-200"
           />

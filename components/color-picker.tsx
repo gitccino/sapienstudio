@@ -40,7 +40,7 @@ export function ColorPicker({
     <div className="flex flex-row items-center justify-start gap-2 px-1.5 md:px-6">
       {isEyedropperSupported ? (
         <div
-          className="border-foreground/10 box-content flex items-center justify-center rounded-sm border-2"
+          className="border-border box-content flex items-center justify-center rounded-sm border-0"
           style={{
             backgroundColor: hexValue,
             height: SWATCH_SIZE,
@@ -55,7 +55,7 @@ export function ColorPicker({
         </div>
       ) : (
         <label
-          className="border-foreground/10 box-content flex cursor-pointer items-center justify-center rounded-sm border-2"
+          className="border-border box-content flex cursor-pointer items-center justify-center rounded-sm border-0"
           aria-label="Open color picker"
           style={{
             backgroundColor: hexValue,
@@ -72,14 +72,14 @@ export function ColorPicker({
           <HugeiconsIcon
             icon={PencilEdit01Icon}
             strokeWidth={2}
-            className="size-4 text-white mix-blend-difference"
+            className="size-4 text-white mix-blend-multiply"
           />
         </label>
       )}
-      <span className="font-medium">
-        {label}
-        <span className="text-foreground/50 text-xs">{hexValue}</span>
-      </span>
+      <div className="flex flex-row items-center justify-start gap-1 font-medium">
+        <span className="text-base font-medium">{label}</span>
+        <span className="text-foreground/50 text-[0.6rem]">{hexValue}</span>
+      </div>
     </div>
   )
 }

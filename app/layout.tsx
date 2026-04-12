@@ -27,7 +27,7 @@ export default function RootLayout({
       <head>
         <link rel="stylesheet" href="https://use.typekit.net/dtl8kfu.css" />
       </head>
-      <body className={`antialiased`}>
+      <body className={`no-scrollbar antialiased`}>
         <ThemeSync />
         <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
